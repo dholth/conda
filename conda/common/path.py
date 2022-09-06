@@ -11,11 +11,6 @@ import re
 import subprocess
 from urllib.parse import urlsplit
 
-try:
-    from tlz.itertoolz import accumulate
-except ImportError:
-    from conda._vendor.toolz.itertoolz import accumulate
-
 import itertools
 
 concat = itertools.chain.from_iterable
@@ -122,8 +117,15 @@ def explode_directories(child_directories, already_split=False):
     # get all directories including parents
     # use already_split=True for the result of get_all_directories()
     maybe_split = lambda x: x if already_split else x.split('/')
-    return set(concat(accumulate(join, maybe_split(directory))
-                      for directory in child_directories if directory))
+
+    exploded = set()
+    for directory in (directory for directory in child_directories if directory):
+        path = ""
+        for part in maybe_split(directory):
+            path = join(path, part)
+            exploded.add(path)
+
+    return exploded
 
 
 def pyc_path(py_path, python_major_minor_version):
