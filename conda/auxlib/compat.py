@@ -11,6 +11,7 @@ primitive_types = (str, int, float, complex, bool, NoneType)
 def isiterable(obj):
     # and not a string
     from collections.abc import Iterable
+
     return not isinstance(obj, str) and isinstance(obj, Iterable)
 
 

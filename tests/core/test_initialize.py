@@ -375,6 +375,7 @@ def test_make_entry_point(verbose):
         result = make_entry_point(conda_exe_path, conda_prefix, "conda.entry.point", "run")
         assert result == Result.NO_CHANGE
 
+
 def test_make_entry_point_exe(verbose):
     with tempdir() as conda_temp_prefix:
         conda_prefix = abspath(sys.prefix)

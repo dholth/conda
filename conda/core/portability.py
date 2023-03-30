@@ -22,11 +22,13 @@ log = getLogger(__name__)
 
 
 # three capture groups: whole_shebang, executable, options
-SHEBANG_REGEX = (br'^(#!'  # pretty much the whole match string
-                 br'(?:[ ]*)'  # allow spaces between #! and beginning of the executable path
-                 br'(/(?:\\ |[^ \n\r\t])*)'  # the executable is the next text block without an escaped space or non-space whitespace character  # NOQA
-                 br'(.*)'  # the rest of the line can contain option flags
-                 br')$')  # end whole_shebang group
+SHEBANG_REGEX = (
+    rb"^(#!"  # pretty much the whole match string
+    rb"(?:[ ]*)"  # allow spaces between #! and beginning of the executable path
+    rb"(/(?:\\ |[^ \n\r\t])*)"  # the executable is the next text block without an escaped space or non-space whitespace character  # NOQA
+    rb"(.*)"  # the rest of the line can contain option flags
+    rb")$"
+)  # end whole_shebang group
 
 MAX_SHEBANG_LENGTH = 127 if on_linux else 512  # Not used on Windows
 
@@ -75,8 +77,9 @@ def update_prefix(
         # Step 4. if we have a binary file, make sure the byte size is the same before
         #         and after the update
         if mode == FileMode.binary and len(data) != len(original_data):
-            raise BinaryPrefixReplacementError(path, placeholder, new_prefix,
-                                               len(original_data), len(data))
+            raise BinaryPrefixReplacementError(
+                path, placeholder, new_prefix, len(original_data), len(data)
+            )
 
         return data
 
@@ -84,7 +87,7 @@ def update_prefix(
 
     if updated and mode == FileMode.binary and subdir == "osx-arm64" and sys.platform == "darwin":
         # Apple arm64 needs signed executables
-        subprocess.run(['/usr/bin/codesign', '-s', '-', '-f', realpath(path)], capture_output=True)
+        subprocess.run(["/usr/bin/codesign", "-s", "-", "-f", realpath(path)], capture_output=True)
 
 
 def replace_prefix(mode: FileMode, data: bytes, placeholder: str, new_prefix: str) -> bytes:
@@ -166,8 +169,9 @@ def binary_replace(
 
     return data
 
+
 def has_pyzzer_entry_point(data):
-    pos = data.rfind(b'PK\x05\x06')
+    pos = data.rfind(b"PK\x05\x06")
     return pos >= 0
 
 
@@ -197,24 +201,24 @@ def replace_pyzzer_entry_point_shebang(all_data, placeholder, new_prefix):
     # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
     # THE SOFTWARE.
     launcher = shebang = None
-    pos = all_data.rfind(b'PK\x05\x06')
+    pos = all_data.rfind(b"PK\x05\x06")
     if pos >= 0:
-        end_cdr = all_data[pos + 12:pos + 20]
-        cdr_size, cdr_offset = struct.unpack('<LL', end_cdr)
+        end_cdr = all_data[pos + 12 : pos + 20]
+        cdr_size, cdr_offset = struct.unpack("<LL", end_cdr)
         arc_pos = pos - cdr_size - cdr_offset
         data = all_data[arc_pos:]
         if arc_pos > 0:
-            pos = all_data.rfind(b'#!', 0, arc_pos)
+            pos = all_data.rfind(b"#!", 0, arc_pos)
             if pos >= 0:
                 shebang = all_data[pos:arc_pos]
                 if pos > 0:
                     launcher = all_data[:pos]
 
         if data and shebang and launcher:
-            if hasattr(placeholder, 'encode'):
-                placeholder = placeholder.encode('utf-8')
-            if hasattr(new_prefix, 'encode'):
-                new_prefix = new_prefix.encode('utf-8')
+            if hasattr(placeholder, "encode"):
+                placeholder = placeholder.encode("utf-8")
+            if hasattr(new_prefix, "encode"):
+                new_prefix = new_prefix.encode("utf-8")
             shebang = shebang.replace(placeholder, new_prefix)
             all_data = b"".join([launcher, shebang, data])
     return all_data

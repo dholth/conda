@@ -18,24 +18,27 @@ MAX_TRIES = 7
 
 def exp_backoff_fn(fn, *args, **kwargs):
     """Mostly for retrying file operations that fail on Windows due to virus scanners"""
-    max_tries = kwargs.pop('max_tries', MAX_TRIES)
+    max_tries = kwargs.pop("max_tries", MAX_TRIES)
     if not on_win:
         return fn(*args, **kwargs)
 
     import random
+
     # with max_tries = 6, max total time ~= 3.2 sec
     # with max_tries = 7, max total time ~= 6.5 sec
 
     def sleep_some(n, exc):
-        if n == max_tries-1:
+        if n == max_tries - 1:
             raise
-        sleep_time = ((2 ** n) + random.random()) * 0.1
+        sleep_time = ((2**n) + random.random()) * 0.1
         caller_frame = sys._getframe(1)
-        log.trace("retrying %s/%s %s() in %g sec",
-                  basename(caller_frame.f_code.co_filename),
-                  caller_frame.f_lineno,
-                  fn.__name__,
-                  sleep_time)
+        log.trace(
+            "retrying %s/%s %s() in %g sec",
+            basename(caller_frame.f_code.co_filename),
+            caller_frame.f_lineno,
+            fn.__name__,
+            sleep_time,
+        )
         sleep(sleep_time)
 
     for n in range(max_tries):
@@ -61,7 +64,7 @@ def exp_backoff_fn(fn, *args, **kwargs):
 def mkdir_p(path):
     # putting this here to help with circular imports
     try:
-        log.trace('making directory %s', path)
+        log.trace("making directory %s", path)
         if path:
             os.makedirs(path)
             return isdir(path) and path
@@ -78,7 +81,7 @@ def mkdir_p_sudo_safe(path):
     base_dir = dirname(path)
     if not isdir(base_dir):
         mkdir_p_sudo_safe(base_dir)
-    log.trace('making directory %s', path)
+    log.trace("making directory %s", path)
     try:
         os.mkdir(path)
     except OSError as e:
@@ -99,6 +102,10 @@ def mkdir_p_sudo_safe(path):
         try:
             os.chmod(path, 0o2775)
         except OSError as e:
-            log.trace("Failed to set permissions to 2775 on %s (%d %d)",
-                      path, e.errno, errorcode[e.errno])
+            log.trace(
+                "Failed to set permissions to 2775 on %s (%d %d)",
+                path,
+                e.errno,
+                errorcode[e.errno],
+            )
             pass

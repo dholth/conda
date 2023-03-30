@@ -23,51 +23,53 @@ NO_MATCH = object()
 
 
 class TypeCoercionError(AuxlibError, ValueError):
-
     def __init__(self, value, msg, *args, **kwargs):
         self.value = value
         super().__init__(msg, *args, **kwargs)
 
 
 class _Regex:
-
     @memoizedproperty
     def BOOLEAN_TRUE(self):
-        return compile(r'^true$|^yes$|^on$', IGNORECASE), True
+        return compile(r"^true$|^yes$|^on$", IGNORECASE), True
 
     @memoizedproperty
     def BOOLEAN_FALSE(self):
-        return compile(r'^false$|^no$|^off$', IGNORECASE), False
+        return compile(r"^false$|^no$|^off$", IGNORECASE), False
 
     @memoizedproperty
     def NONE(self):
-        return compile(r'^none$|^null$', IGNORECASE), None
+        return compile(r"^none$|^null$", IGNORECASE), None
 
     @memoizedproperty
     def INT(self):
-        return compile(r'^[-+]?\d+$'), int
+        return compile(r"^[-+]?\d+$"), int
 
     @memoizedproperty
     def BIN(self):
-        return compile(r'^[-+]?0[bB][01]+$'), bin
+        return compile(r"^[-+]?0[bB][01]+$"), bin
 
     @memoizedproperty
     def OCT(self):
-        return compile(r'^[-+]?0[oO][0-7]+$'), oct
+        return compile(r"^[-+]?0[oO][0-7]+$"), oct
 
     @memoizedproperty
     def HEX(self):
-        return compile(r'^[-+]?0[xX][0-9a-fA-F]+$'), hex
+        return compile(r"^[-+]?0[xX][0-9a-fA-F]+$"), hex
 
     @memoizedproperty
     def FLOAT(self):
-        return compile(r'^[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?$'), float
+        return compile(r"^[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?$"), float
 
     @memoizedproperty
     def COMPLEX(self):
-        return (compile(r'^(?:[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?)?'  # maybe first float
-                        r'[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?j$'),     # second float with j
-                complex)
+        return (
+            compile(
+                r"^(?:[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?)?"  # maybe first float
+                r"[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?j$"
+            ),  # second float with j
+            complex,
+        )
 
     @property
     def numbers(self):
@@ -88,16 +90,27 @@ class _Regex:
         yield self.NONE
 
     def convert_number(self, value_string):
-        return self._convert(value_string, (self.numbers, ))
+        return self._convert(value_string, (self.numbers,))
 
     def convert(self, value_string):
-        return self._convert(value_string, (self.boolean, self.none, self.numbers, ))
+        return self._convert(
+            value_string,
+            (
+                self.boolean,
+                self.none,
+                self.numbers,
+            ),
+        )
 
     def _convert(self, value_string, type_list):
-        return next((typish(value_string) if callable(typish) else typish
-                     for regex, typish in chain.from_iterable(type_list)
-                     if regex.match(value_string)),
-                    NO_MATCH)
+        return next(
+            (
+                typish(value_string) if callable(typish) else typish
+                for regex, typish in chain.from_iterable(type_list)
+                if regex.match(value_string)
+            ),
+            NO_MATCH,
+        )
 
 
 _REGEX = _Regex()
@@ -236,7 +249,7 @@ def typify(value, type_hint=None):
             return boolify(value, return_string=True)
         elif not (type_hint - (STRING_TYPES_SET | {NoneType})):
             value = str(value)
-            return None if value.lower() == 'none' else value
+            return None if value.lower() == "none" else value
         elif not (type_hint - {bool, int}):
             return typify_str_no_hint(str(value))
         else:
@@ -290,4 +303,4 @@ def listify(val, return_type=tuple):
     elif isiterable(val):
         return return_type(val)
     else:
-        return return_type((val, ))
+        return return_type((val,))

@@ -12,6 +12,7 @@ from conda.testing.integration import run_command, Commands
 
 log = getLogger(__name__)
 
+
 class TestLinkOrder(unittest.TestCase):
     def setUp(self):
         self.prefix = tempfile.mkdtemp()
@@ -21,10 +22,14 @@ class TestLinkOrder(unittest.TestCase):
 
     @pytest.mark.integration
     def test_link_order_post_link_actions(self):
-        stdout, stderr, _ = run_command(Commands.CREATE, self.prefix, "c_post_link_package", "-c", "conda-test")
-        assert(stderr == '')
+        stdout, stderr, _ = run_command(
+            Commands.CREATE, self.prefix, "c_post_link_package", "-c", "conda-test"
+        )
+        assert stderr == ""
 
     @pytest.mark.integration
     def test_link_order_post_link_depend(self):
-        stdout, stderr, _ = run_command(Commands.CREATE, self.prefix, "e_post_link_package", "-c", "conda-test")
-        assert(stderr == '')
+        stdout, stderr, _ = run_command(
+            Commands.CREATE, self.prefix, "e_post_link_package", "-c", "conda-test"
+        )
+        assert stderr == ""

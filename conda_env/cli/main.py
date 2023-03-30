@@ -17,8 +17,9 @@ from conda.gateways.logging import initialize_logging
 try:
     from conda.exceptions import conda_exception_handler
 except ImportError as e:
-    if 'CONDA_DEFAULT_ENV' in os.environ:
-        sys.stderr.write("""
+    if "CONDA_DEFAULT_ENV" in os.environ:
+        sys.stderr.write(
+            """
 There was an error importing conda.
 
 It appears this was caused by installing conda-env into a conda
@@ -34,7 +35,8 @@ If you are seeing this error and have not installed conda-env into an
 environment, please open a bug report at:
     https://github.com/conda/conda-env
 
-""".lstrip())
+""".lstrip()
+        )
         sys.exit(-1)
     else:
         raise e
@@ -52,7 +54,7 @@ from . import main_config
 # merged into conda-env, this needs to be adjusted.
 def show_help_on_empty_command():
     if len(sys.argv) == 1:  # sys.argv == ['/path/to/bin/conda-env']
-        sys.argv.append('--help')
+        sys.argv.append("--help")
 
 
 def create_parser():
@@ -71,10 +73,11 @@ def create_parser():
 
 
 def do_call(args, parser):
-    relative_mod, func_name = args.func.rsplit('.', 1)
+    relative_mod, func_name = args.func.rsplit(".", 1)
     # func_name should always be 'execute'
     from importlib import import_module
-    module = import_module(relative_mod, __name__.rsplit('.', 1)[0])
+
+    module = import_module(relative_mod, __name__.rsplit(".", 1)[0])
     exit_code = getattr(module, func_name)(args, parser)
     return exit_code
 
@@ -89,5 +92,5 @@ def main():
     return conda_exception_handler(do_call, args, parser)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

@@ -19,70 +19,90 @@ from ..utils import human_bytes
 
 def execute(args, parser):
     spec = MatchSpec(args.match_spec)
-    if spec.get_exact_value('subdir'):
-        subdirs = spec.get_exact_value('subdir'),
+    if spec.get_exact_value("subdir"):
+        subdirs = (spec.get_exact_value("subdir"),)
     else:
         subdirs = context.subdirs
 
     if args.envs:
-        with Spinner("Searching environments for %s" % spec,
-                     not context.verbosity and not context.quiet,
-                     context.json):
+        with Spinner(
+            "Searching environments for %s" % spec,
+            not context.verbosity and not context.quiet,
+            context.json,
+        ):
             prefix_matches = query_all_prefixes(spec)
-            ordered_result = tuple({
-                'location': prefix,
-                'package_records': tuple(sorted(
-                    (PackageRecord.from_objects(prefix_rec) for prefix_rec in prefix_recs),
-                    key=lambda prec: prec._pkey
-                )),
-            } for prefix, prefix_recs in prefix_matches)
+            ordered_result = tuple(
+                {
+                    "location": prefix,
+                    "package_records": tuple(
+                        sorted(
+                            (PackageRecord.from_objects(prefix_rec) for prefix_rec in prefix_recs),
+                            key=lambda prec: prec._pkey,
+                        )
+                    ),
+                }
+                for prefix, prefix_recs in prefix_matches
+            )
         if context.json:
             stdout_json(ordered_result)
         elif args.info:
             for pkg_group in ordered_result:
-                for prec in pkg_group['package_records']:
+                for prec in pkg_group["package_records"]:
                     pretty_record(prec)
         else:
-            builder = ['# %-13s %15s %15s  %-20s %-20s' % (
-                "Name",
-                "Version",
-                "Build",
-                "Channel",
-                "Location",
-            )]
+            builder = [
+                "# %-13s %15s %15s  %-20s %-20s"
+                % (
+                    "Name",
+                    "Version",
+                    "Build",
+                    "Channel",
+                    "Location",
+                )
+            ]
             for pkg_group in ordered_result:
-                for prec in pkg_group['package_records']:
-                    builder.append('%-15s %15s %15s  %-20s %-20s' % (
-                        prec.name,
-                        prec.version,
-                        prec.build,
-                        prec.channel.name,
-                        pkg_group['location'],
-                    ))
-            print('\n'.join(builder))
+                for prec in pkg_group["package_records"]:
+                    builder.append(
+                        "%-15s %15s %15s  %-20s %-20s"
+                        % (
+                            prec.name,
+                            prec.version,
+                            prec.build,
+                            prec.channel.name,
+                            pkg_group["location"],
+                        )
+                    )
+            print("\n".join(builder))
         return 0
 
     with Spinner("Loading channels", not context.verbosity and not context.quiet, context.json):
-        spec_channel = spec.get_exact_value('channel')
+        spec_channel = spec.get_exact_value("channel")
         channel_urls = (spec_channel,) if spec_channel else context.channels
 
-        matches = sorted(SubdirData.query_all(spec, channel_urls, subdirs),
-                         key=lambda rec: (rec.name, VersionOrder(rec.version), rec.build))
+        matches = sorted(
+            SubdirData.query_all(spec, channel_urls, subdirs),
+            key=lambda rec: (rec.name, VersionOrder(rec.version), rec.build),
+        )
     if not matches and spec.get_exact_value("name"):
         flex_spec = MatchSpec(spec, name="*%s*" % spec.name)
         if not context.json:
             print(f"No match found for: {spec}. Search: {flex_spec}")
-        matches = sorted(SubdirData.query_all(flex_spec, channel_urls, subdirs),
-                         key=lambda rec: (rec.name, VersionOrder(rec.version), rec.build))
+        matches = sorted(
+            SubdirData.query_all(flex_spec, channel_urls, subdirs),
+            key=lambda rec: (rec.name, VersionOrder(rec.version), rec.build),
+        )
 
     if not matches:
-        channels_urls = tuple(calculate_channel_urls(
-            channel_urls=context.channels,
-            prepend=not args.override_channels,
-            platform=subdirs[0],
-            use_local=args.use_local,
-        ))
+        channels_urls = tuple(
+            calculate_channel_urls(
+                channel_urls=context.channels,
+                prepend=not args.override_channels,
+                platform=subdirs[0],
+                use_local=args.use_local,
+            )
+        )
         from ..exceptions import PackagesNotFoundError
+
         raise PackagesNotFoundError((str(spec),), channels_urls)
 
     if context.json:
@@ -96,20 +116,26 @@ def execute(args, parser):
             pretty_record(record)
 
     else:
-        builder = ['# %-18s %15s %15s  %-20s' % (
-            "Name",
-            "Version",
-            "Build",
-            "Channel",
-        )]
+        builder = [
+            "# %-18s %15s %15s  %-20s"
+            % (
+                "Name",
+                "Version",
+                "Build",
+                "Channel",
+            )
+        ]
         for record in matches:
-            builder.append('%-20s %15s %15s  %-20s' % (
-                record.name,
-                record.version,
-                record.build,
-                record.channel.name,
-            ))
-        print('\n'.join(builder))
+            builder.append(
+                "%-20s %15s %15s  %-20s"
+                % (
+                    record.name,
+                    record.version,
+                    record.build,
+                    record.channel.name,
+                )
+            )
+        print("\n".join(builder))
 
 
 def pretty_record(record):
@@ -120,7 +146,7 @@ def pretty_record(record):
 
     builder = []
     builder.append(record.name + " " + record.version + " " + record.build)
-    builder.append('-'*len(builder[0]))
+    builder.append("-" * len(builder[0]))
 
     push_line("file name", "fn")
     push_line("name", "name")
@@ -144,5 +170,5 @@ def pretty_record(record):
     builder.append(
         "%-12s: %s" % ("dependencies", dashlist(record.depends) if record.depends else "[]")
     )
-    builder.append('\n')
-    print('\n'.join(builder))
+    builder.append("\n")
+    print("\n".join(builder))

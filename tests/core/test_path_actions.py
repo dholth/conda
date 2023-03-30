@@ -17,10 +17,21 @@ from conda.auxlib.ish import dals
 from conda.auxlib.collection import AttrDict
 from conda.base.context import context
 from conda.common.compat import on_win
-from conda.common.path import get_bin_directory_short_path, get_python_noarch_target_path, \
-    get_python_short_path, get_python_site_packages_short_path, parse_entry_point_def, pyc_path, \
-    win_path_ok, explode_directories
-from conda.core.path_actions import CompileMultiPycAction, CreatePythonEntryPointAction, LinkPathAction
+from conda.common.path import (
+    get_bin_directory_short_path,
+    get_python_noarch_target_path,
+    get_python_short_path,
+    get_python_site_packages_short_path,
+    parse_entry_point_def,
+    pyc_path,
+    win_path_ok,
+    explode_directories,
+)
+from conda.core.path_actions import (
+    CompileMultiPycAction,
+    CreatePythonEntryPointAction,
+    LinkPathAction,
+)
 from conda.gateways.disk.create import create_link, mkdir_p
 from conda.gateways.disk.delete import rm_rf
 from conda.gateways.disk.link import islink
@@ -33,12 +44,12 @@ from conda.models.records import PathDataV1
 log = getLogger(__name__)
 
 
-def make_test_file(target_dir, suffix='', contents=''):
+def make_test_file(target_dir, suffix="", contents=""):
     if not isdir(target_dir):
         mkdir_p(target_dir)
     fn = str(uuid4())[:8]
     full_path = join(target_dir, fn + suffix)
-    with open(full_path, 'w') as fh:
+    with open(full_path, "w") as fh:
         fh.write(contents or str(uuid4()))
     return full_path
 
@@ -54,12 +65,12 @@ class PathActionsTests(TestCase):
     def setUp(self):
         tempdirdir = gettempdir()
 
-        prefix_dirname = str(uuid4())[:4] + ' ' + str(uuid4())[:4] + '-prefix'
+        prefix_dirname = str(uuid4())[:4] + " " + str(uuid4())[:4] + "-prefix"
         self.prefix = join(tempdirdir, prefix_dirname)
         mkdir_p(self.prefix)
         assert isdir(self.prefix)
 
-        pkgs_dirname = str(uuid4())[:4] + ' ' + str(uuid4())[:4]
+        pkgs_dirname = str(uuid4())[:4] + " " + str(uuid4())[:4]
         self.pkgs_dir = join(tempdirdir, pkgs_dirname)
         mkdir_p(self.pkgs_dir)
         assert isdir(self.pkgs_dir)
@@ -72,9 +83,7 @@ class PathActionsTests(TestCase):
 
     def test_CompileMultiPycAction_generic(self):
         package_info = AttrDict(
-            package_metadata=AttrDict(
-                noarch=AttrDict(
-                    type=NoarchType.generic))
+            package_metadata=AttrDict(noarch=AttrDict(type=NoarchType.generic))
         )
         noarch = package_info.package_metadata and package_info.package_metadata.noarch
         assert noarch.type == NoarchType.generic
@@ -89,36 +98,41 @@ class PathActionsTests(TestCase):
     def test_CompileMultiPycAction_noarch_python(self):
         if not softlink_supported(__file__, self.prefix) and on_win:
             pytest.skip("softlink not supported")
-        target_python_version = '%d.%d' % sys.version_info[:2]
+        target_python_version = "%d.%d" % sys.version_info[:2]
         sp_dir = get_python_site_packages_short_path(target_python_version)
         transaction_context = {
-            'target_python_version': target_python_version,
-            'target_site_packages_short_path': sp_dir,
+            "target_python_version": target_python_version,
+            "target_site_packages_short_path": sp_dir,
         }
         package_info = AttrDict(package_metadata=AttrDict(noarch=AttrDict(type=NoarchType.python)))
 
         file_link_actions = [
             AttrDict(
-                source_short_path='site-packages/something.py',
-                target_short_path=get_python_noarch_target_path('site-packages/something.py', sp_dir),
+                source_short_path="site-packages/something.py",
+                target_short_path=get_python_noarch_target_path(
+                    "site-packages/something.py", sp_dir
+                ),
             ),
             AttrDict(
-                source_short_path='site-packages/another.py',
-                target_short_path=get_python_noarch_target_path('site-packages/another.py', sp_dir),
+                source_short_path="site-packages/another.py",
+                target_short_path=get_python_noarch_target_path(
+                    "site-packages/another.py", sp_dir
+                ),
             ),
             AttrDict(
                 # this one shouldn't get compiled
-                source_short_path='something.py',
-                target_short_path=get_python_noarch_target_path('something.py', sp_dir),
+                source_short_path="something.py",
+                target_short_path=get_python_noarch_target_path("something.py", sp_dir),
             ),
             AttrDict(
                 # this one shouldn't get compiled
-                source_short_path='another.py',
-                target_short_path=get_python_noarch_target_path('another.py', sp_dir),
+                source_short_path="another.py",
+                target_short_path=get_python_noarch_target_path("another.py", sp_dir),
             ),
         ]
-        axns = CompileMultiPycAction.create_actions(transaction_context, package_info, self.prefix,
-                                                    None, file_link_actions)
+        axns = CompileMultiPycAction.create_actions(
+            transaction_context, package_info, self.prefix, None, file_link_actions
+        )
 
         assert len(axns) == 1
         axn = axns[0]
@@ -126,23 +140,43 @@ class PathActionsTests(TestCase):
         source_full_path0 = source_full_paths[0]
         source_full_path1 = source_full_paths[1]
         assert len(source_full_paths) == 2
-        assert source_full_path0 == join(self.prefix, win_path_ok(get_python_noarch_target_path('site-packages/something.py', sp_dir)))
-        assert source_full_path1 == join(self.prefix, win_path_ok(get_python_noarch_target_path('site-packages/another.py', sp_dir)))
+        assert source_full_path0 == join(
+            self.prefix,
+            win_path_ok(get_python_noarch_target_path("site-packages/something.py", sp_dir)),
+        )
+        assert source_full_path1 == join(
+            self.prefix,
+            win_path_ok(get_python_noarch_target_path("site-packages/another.py", sp_dir)),
+        )
         target_full_paths = tuple(axn.target_full_paths)
         target_full_path0 = target_full_paths[0]
         target_full_path1 = target_full_paths[1]
         assert len(target_full_paths) == 2
-        assert target_full_path0 == join(self.prefix, win_path_ok(pyc_path(get_python_noarch_target_path('site-packages/something.py', sp_dir),
-                     target_python_version)))
-        assert target_full_path1 == join(self.prefix, win_path_ok(pyc_path(get_python_noarch_target_path('site-packages/another.py', sp_dir),
-                     target_python_version)))
+        assert target_full_path0 == join(
+            self.prefix,
+            win_path_ok(
+                pyc_path(
+                    get_python_noarch_target_path("site-packages/something.py", sp_dir),
+                    target_python_version,
+                )
+            ),
+        )
+        assert target_full_path1 == join(
+            self.prefix,
+            win_path_ok(
+                pyc_path(
+                    get_python_noarch_target_path("site-packages/another.py", sp_dir),
+                    target_python_version,
+                )
+            ),
+        )
 
         # make .py file in prefix that will be compiled
         mkdir_p(dirname(source_full_path0))
-        with open(source_full_path0, 'w') as fh:
+        with open(source_full_path0, "w") as fh:
             fh.write("value = 42\n")
         mkdir_p(dirname(source_full_path1))
-        with open(source_full_path1, 'w') as fh:
+        with open(source_full_path1, "w") as fh:
             fh.write("value = 43\n")
 
         # symlink the current python
@@ -175,20 +209,25 @@ class PathActionsTests(TestCase):
         assert axns == ()
 
     def test_CreatePythonEntryPointAction_noarch_python(self):
-        target_python_version = '%d.%d' % sys.version_info[:2]
+        target_python_version = "%d.%d" % sys.version_info[:2]
         transaction_context = {
-            'target_python_version': target_python_version,
+            "target_python_version": target_python_version,
         }
-        package_info = AttrDict(package_metadata=AttrDict(noarch=AttrDict(
-            type=NoarchType.python,
-            entry_points=(
-                'command1=some.module:main',
-                'command2=another.somewhere:go',
-            ),
-        )))
+        package_info = AttrDict(
+            package_metadata=AttrDict(
+                noarch=AttrDict(
+                    type=NoarchType.python,
+                    entry_points=(
+                        "command1=some.module:main",
+                        "command2=another.somewhere:go",
+                    ),
+                )
+            )
+        )
 
-        axns = CreatePythonEntryPointAction.create_actions(transaction_context, package_info,
-                                                           self.prefix, LinkType.hardlink)
+        axns = CreatePythonEntryPointAction.create_actions(
+            transaction_context, package_info, self.prefix, LinkType.hardlink
+        )
         grouped_axns = groupby(lambda ax: isinstance(ax, LinkPathAction), axns)
         windows_exe_axns = grouped_axns.get(True, ())
         assert len(windows_exe_axns) == (2 if on_win else 0)
@@ -197,15 +236,15 @@ class PathActionsTests(TestCase):
 
         py_ep_axn = py_ep_axns[0]
 
-        command, module, func = parse_entry_point_def('command1=some.module:main')
-        assert command == 'command1'
+        command, module, func = parse_entry_point_def("command1=some.module:main")
+        assert command == "command1"
         if on_win:
             target_short_path = f"{get_bin_directory_short_path()}\\{command}-script.py"
         else:
             target_short_path = f"{get_bin_directory_short_path()}/{command}"
         assert py_ep_axn.target_full_path == join(self.prefix, target_short_path)
-        assert py_ep_axn.module == module == 'some.module'
-        assert py_ep_axn.func == func == 'main'
+        assert py_ep_axn.module == module == "some.module"
+        assert py_ep_axn.func == func == "main"
 
         mkdir_p(dirname(py_ep_axn.target_full_path))
         py_ep_axn.execute()
@@ -261,14 +300,22 @@ class PathActionsTests(TestCase):
         path_type = PathType.hardlink
 
         source_path_data = PathDataV1(
-            _path = source_short_path,
+            _path=source_short_path,
             path_type=path_type,
             sha256=correct_sha256,
             size_in_bytes=correct_size_in_bytes,
         )
 
-        axn = LinkPathAction({}, None, self.pkgs_dir, source_short_path, self.prefix,
-                             target_short_path, LinkType.hardlink, source_path_data)
+        axn = LinkPathAction(
+            {},
+            None,
+            self.pkgs_dir,
+            source_short_path,
+            self.prefix,
+            target_short_path,
+            LinkType.hardlink,
+            source_path_data,
+        )
 
         assert axn.target_full_path == join(self.prefix, target_short_path)
         axn.verify()
@@ -292,14 +339,22 @@ class PathActionsTests(TestCase):
         path_type = PathType.hardlink
 
         source_path_data = PathDataV1(
-            _path = source_short_path,
+            _path=source_short_path,
             path_type=path_type,
             sha256=correct_sha256,
             size_in_bytes=correct_size_in_bytes,
         )
 
-        axn = LinkPathAction({}, None, self.pkgs_dir, source_short_path, self.prefix,
-                             target_short_path, LinkType.softlink, source_path_data)
+        axn = LinkPathAction(
+            {},
+            None,
+            self.pkgs_dir,
+            source_short_path,
+            self.prefix,
+            target_short_path,
+            LinkType.softlink,
+            source_path_data,
+        )
 
         assert axn.target_full_path == join(self.prefix, target_short_path)
         axn.verify()
@@ -313,9 +368,10 @@ class PathActionsTests(TestCase):
         assert lexists(source_full_path)
 
     def test_simple_LinkPathAction_directory(self):
-        target_short_path = join('a', 'nested', 'directory')
-        axn = LinkPathAction({}, None, None, None, self.prefix,
-                             target_short_path, LinkType.directory, None)
+        target_short_path = join("a", "nested", "directory")
+        axn = LinkPathAction(
+            {}, None, None, None, self.prefix, target_short_path, LinkType.directory, None
+        )
         axn.verify()
         axn.execute()
 
@@ -337,14 +393,22 @@ class PathActionsTests(TestCase):
         path_type = PathType.hardlink
 
         source_path_data = PathDataV1(
-            _path = source_short_path,
+            _path=source_short_path,
             path_type=path_type,
             sha256=correct_sha256,
             size_in_bytes=correct_size_in_bytes,
         )
 
-        axn = LinkPathAction({}, None, self.pkgs_dir, source_short_path, self.prefix,
-                             target_short_path, LinkType.copy, source_path_data)
+        axn = LinkPathAction(
+            {},
+            None,
+            self.pkgs_dir,
+            source_short_path,
+            self.prefix,
+            target_short_path,
+            LinkType.copy,
+            source_path_data,
+        )
 
         assert axn.target_full_path == join(self.prefix, target_short_path)
         axn.verify()

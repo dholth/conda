@@ -31,6 +31,7 @@ from .common.toposort import _toposort  # noqa: F401
 from .gateways.disk.link import lchmod  # noqa: F401
 from .gateways.connection.download import TmpDownload, download as _download  # noqa: F401
 
+
 @deprecated("23.3", "23.9", addendum="Handled by CondaSession.")
 def handle_proxy_407(x, y):
     pass
@@ -137,6 +138,7 @@ class memoized:  # pragma: no cover
     If called later with the same arguments, the cached value is returned
     (not reevaluated).
     """
+
     def __init__(self, func):
         self.func = func
         self.cache = {}
@@ -198,12 +200,12 @@ from .plan import display_actions as _display_actions
 
 
 def display_actions(actions, index, show_channel_urls=None, specs_to_remove=(), specs_to_add=()):
-    if 'FETCH' in actions:
-        actions['FETCH'] = [index[d] for d in actions['FETCH']]
-    if 'LINK' in actions:
-        actions['LINK'] = [index[d] for d in actions['LINK']]
-    if 'UNLINK' in actions:
-        actions['UNLINK'] = [index[d] for d in actions['UNLINK']]
+    if "FETCH" in actions:
+        actions["FETCH"] = [index[d] for d in actions["FETCH"]]
+    if "LINK" in actions:
+        actions["LINK"] = [index[d] for d in actions["LINK"]]
+    if "UNLINK" in actions:
+        actions["UNLINK"] = [index[d] for d in actions["UNLINK"]]
     index = {prec: prec for prec in index.values()}
     return _display_actions(actions, index, show_channel_urls, specs_to_remove, specs_to_add)
 
@@ -215,8 +217,15 @@ from .core.index import (  # noqa: F401
 )
 
 
-def get_index(channel_urls=(), prepend=True, platform=None,
-              use_local=False, use_cache=False, unknown=None, prefix=None):
+def get_index(
+    channel_urls=(),
+    prepend=True,
+    platform=None,
+    use_local=False,
+    use_cache=False,
+    unknown=None,
+    prefix=None,
+):
     index = _get_index(channel_urls, prepend, platform, use_local, use_cache, unknown, prefix)
     return {Dist(prec): prec for prec in index.values()}
 
@@ -230,7 +239,6 @@ def package_cache():
     from .core.package_cache_data import PackageCacheData
 
     class package_cache:
-
         def __contains__(self, dist):
             return bool(PackageCacheData.first_writable().get(Dist(dist).to_package_ref(), None))
 
@@ -250,10 +258,10 @@ def symlink_conda(prefix, root_dir, shell=None):  # pragma: no cover
     if os.path.normcase(os.path.normpath(prefix)) in os.path.normcase(os.path.normpath(root_dir)):
         return
     if on_win:
-        where = 'condabin'
+        where = "condabin"
         symlink_fn = functools.partial(win_conda_bat_redirect, shell=shell)
     else:
-        where = 'bin'
+        where = "bin"
         symlink_fn = os.symlink
     if not os.path.isdir(os.path.join(prefix, where)):
         os.makedirs(os.path.join(prefix, where))
@@ -276,9 +284,9 @@ def _symlink_conda_hlp(prefix, root_dir, where, symlink_fn):  # pragma: no cover
             if not os.path.lexists(prefix_file):
                 symlink_fn(root_file, prefix_file)
         except OSError as e:
-            if (os.path.lexists(prefix_file) and (e.errno in (
-                    errno.EPERM, errno.EACCES, errno.EROFS, errno.EEXIST
-            ))):
+            if os.path.lexists(prefix_file) and (
+                e.errno in (errno.EPERM, errno.EACCES, errno.EROFS, errno.EEXIST)
+            ):
                 # Cannot symlink root_file to prefix_file. Ignoring since link already exists
                 pass
             else:
@@ -286,6 +294,7 @@ def _symlink_conda_hlp(prefix, root_dir, where, symlink_fn):  # pragma: no cover
 
 
 if on_win:  # pragma: no cover
+
     def win_conda_bat_redirect(src, dst, shell):
         """Special function for Windows XP where the `CreateSymbolicLink`
         function is not available.
@@ -296,6 +305,7 @@ if on_win:  # pragma: no cover
         Works of course only with callable files, e.g. `.bat` or `.exe` files.
         """
         from .utils import shells
+
         try:
             os.makedirs(os.path.dirname(dst))
         except OSError as exc:  # Python >2.5
@@ -305,8 +315,8 @@ if on_win:  # pragma: no cover
                 raise
 
         # bat file redirect
-        if not os.path.isfile(dst + '.bat'):
-            with open(dst + '.bat', 'w') as f:
+        if not os.path.isfile(dst + ".bat"):
+            with open(dst + ".bat", "w") as f:
                 f.write('@echo off\ncall "%s" %%*\n' % src)
 
         # TODO: probably need one here for powershell at some point
@@ -321,13 +331,13 @@ if on_win:  # pragma: no cover
             with open(dst, "w") as f:
                 f.write("#!/usr/bin/env bash \n")
                 if src.endswith("conda"):
-                    f.write('%s "$@"' % shells[shell]['path_to'](src+".exe"))
+                    f.write('%s "$@"' % shells[shell]["path_to"](src + ".exe"))
                 else:
-                    f.write('source %s "$@"' % shells[shell]['path_to'](src))
+                    f.write('source %s "$@"' % shells[shell]["path_to"](src))
             # Make the new file executable
             # http://stackoverflow.com/a/30463972/1170370
             mode = os.stat(dst).st_mode
-            mode |= (mode & 292) >> 2    # copy R bits to X
+            mode |= (mode & 292) >> 2  # copy R bits to X
             os.chmod(dst, mode)
 
 
@@ -337,6 +347,7 @@ def linked_data(prefix, ignore_channels=False):
     """
     from .core.prefix_data import PrefixData
     from .models.dist import Dist
+
     pd = PrefixData(prefix)
     return {Dist(prefix_record): prefix_record for prefix_record in pd._prefix_records.values()}
 
@@ -346,6 +357,7 @@ def linked(prefix, ignore_channels=False):
     Return the Dists of linked packages in prefix.
     """
     from .models.enums import PackageType
+
     conda_package_types = PackageType.conda_package_types()
     ld = linked_data(prefix, ignore_channels=ignore_channels).items()
     return {dist for dist, prefix_rec in ld if prefix_rec.package_type in conda_package_types}
@@ -359,6 +371,7 @@ def is_linked(prefix, dist):
     """
     # FIXME Functions that begin with `is_` should return True/False
     from .core.prefix_data import PrefixData
+
     pd = PrefixData(prefix)
     prefix_record = pd.get(dist.name, None)
     if prefix_record is None:
@@ -369,6 +382,7 @@ def is_linked(prefix, dist):
         return None
 
 
-def download(url, dst_path, session=None, md5sum=None, urlstxt=False, retries=3,
-             sha256=None, size=None):
+def download(
+    url, dst_path, session=None, md5sum=None, urlstxt=False, retries=3, sha256=None, size=None
+):
     return _download(url, dst_path, md5=md5sum, sha256=sha256, size=size)

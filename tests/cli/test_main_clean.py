@@ -11,6 +11,7 @@ from conda.core.subdir_data import create_cache_dir
 from conda.gateways.disk.create import mkdir_p
 from conda.testing.integration import make_temp_package_cache, run_command, Commands, make_temp_env
 
+
 def _get_pkgs(pkgs_dir):
     _, dirs, _ = next(walk(pkgs_dir))
     return [join(pkgs_dir, pkg) for pkg in dirs]

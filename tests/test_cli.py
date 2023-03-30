@@ -145,7 +145,9 @@ class TestJson(unittest.TestCase):
         # searching for everything is quite slow; search without name, few
         # matching packages. py_3 is not a special build tag, but there are just
         # a few of them in defaults.
-        stdout, stderr, rc = run_inprocess_conda_command("conda search *[build=py_3] --json --override-channels -c defaults")
+        stdout, stderr, rc = run_inprocess_conda_command(
+            "conda search *[build=py_3] --json --override-channels -c defaults"
+        )
         assert stderr == ""
         assert rc is None
 
@@ -164,7 +166,10 @@ class TestJson(unittest.TestCase):
 
     @pytest.mark.integration
     def test_search_1(self):
-        self.assertIsInstance(capture_json_with_argv("conda search ipython --json --override-channels -c defaults"), dict)
+        self.assertIsInstance(
+            capture_json_with_argv("conda search ipython --json --override-channels -c defaults"),
+            dict,
+        )
 
     @pytest.mark.integration
     def test_search_2(self):
@@ -190,8 +195,13 @@ class TestJson(unittest.TestCase):
 
             # exact match not found, search wildcards
             stdout, _, _ = run_command(
-                Commands.SEARCH, prefix, "ython",
-                "--override-channels", "-c", "defaults", use_exception_handler=True
+                Commands.SEARCH,
+                prefix,
+                "ython",
+                "--override-channels",
+                "-c",
+                "defaults",
+                use_exception_handler=True,
             )
 
             assert re.search(
@@ -228,13 +238,19 @@ class TestJson(unittest.TestCase):
     @pytest.mark.integration
     def test_search_4(self):
         self.assertIsInstance(
-            capture_json_with_argv("conda search --json --override-channels -c defaults --use-index-cache python"), dict
+            capture_json_with_argv(
+                "conda search --json --override-channels -c defaults --use-index-cache python"
+            ),
+            dict,
         )
 
     @pytest.mark.integration
     def test_search_5(self):
         self.assertIsInstance(
-            capture_json_with_argv("conda search --platform win-32 --json --override-channels -c defaults python"), dict
+            capture_json_with_argv(
+                "conda search --platform win-32 --json --override-channels -c defaults python"
+            ),
+            dict,
         )
 
 

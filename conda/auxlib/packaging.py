@@ -79,10 +79,10 @@ import sys
 
 log = getLogger(__name__)
 
-Response = namedtuple('Response', ['stdout', 'stderr', 'rc'])
-GIT_DESCRIBE_REGEX = compile(r"(?:[_-a-zA-Z]*)"
-                             r"(?P<version>[a-zA-Z0-9.]+)"
-                             r"(?:-(?P<post>\d+)-g(?P<hash>[0-9a-f]{7,}))$")
+Response = namedtuple("Response", ["stdout", "stderr", "rc"])
+GIT_DESCRIBE_REGEX = compile(
+    r"(?:[_-a-zA-Z]*)" r"(?P<version>[a-zA-Z0-9.]+)" r"(?:-(?P<post>\d+)-g(?P<hash>[0-9a-f]{7,}))$"
+)
 
 
 def call(command, path=None, raise_on_error=True):
@@ -98,11 +98,11 @@ def call(command, path=None, raise_on_error=True):
     )
     if raise_on_error and rc != 0:
         raise CalledProcessError(rc, command, f"stdout: {stdout}\nstderr: {stderr}")
-    return Response(stdout.decode('utf-8'), stderr.decode('utf-8'), int(rc))
+    return Response(stdout.decode("utf-8"), stderr.decode("utf-8"), int(rc))
 
 
 def _get_version_from_version_file(path):
-    file_path = join(path, '.version')
+    file_path = join(path, ".version")
     if isfile(file_path):
         with open(file_path) as fh:
             return fh.read().strip()
@@ -142,7 +142,7 @@ def _get_version_from_git_tag(tag):
 
 
 def _get_version_from_git_clone(path):
-    tag = _git_describe_tags(path) or ''
+    tag = _git_describe_tags(path) or ""
     return _get_version_from_git_tag(tag)
 
 
@@ -176,10 +176,12 @@ def write_version_into_init(target_dir, version):
     with open(target_init_file) as f:
         init_lines = f.readlines()
     for q in range(len(init_lines)):
-        if init_lines[q].startswith('__version__'):
+        if init_lines[q].startswith("__version__"):
             init_lines[q] = f'__version__ = "{version}"\n'
-        elif (init_lines[q].startswith(('from auxlib', 'import auxlib'))
-              or 'auxlib.packaging' in init_lines[q]):
+        elif (
+            init_lines[q].startswith(("from auxlib", "import auxlib"))
+            or "auxlib.packaging" in init_lines[q]
+        ):
             init_lines[q] = None
     print(f"UPDATING {target_init_file}")
     remove(target_init_file)
@@ -191,7 +193,7 @@ def write_version_file(target_dir, version):
     assert isdir(target_dir), f"Directory not found: {target_dir}"
     target_file = join(target_dir, ".version")
     print(f"WRITING {target_file} with version {version}")
-    with open(target_file, 'w') as f:
+    with open(target_file, "w") as f:
         f.write(version)
 
 
@@ -213,17 +215,17 @@ class SDistCommand(sdist):
 
 
 # swiped from setuptools
-def find_packages(where='.', exclude=()):
+def find_packages(where=".", exclude=()):
     out = []
-    stack = [(convert_path(where), '')]
+    stack = [(convert_path(where), "")]
     while stack:
         where, prefix = stack.pop(0)
         for name in listdir(where):
             fn = join(where, name)
             if "." not in name and isdir(fn) and isfile(join(fn, "__init__.py")):
                 out.append(prefix + name)
-                stack.append((fn, prefix + name + '.'))
-    for pat in list(exclude) + ['ez_setup', 'distribute_setup']:
+                stack.append((fn, prefix + name + "."))
+    for pat in list(exclude) + ["ez_setup", "distribute_setup"]:
         out = [item for item in out if not fnmatchcase(item, pat)]
     return out
 

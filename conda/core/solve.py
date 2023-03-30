@@ -29,8 +29,7 @@ from ..base.context import context
 from ..common.constants import NULL
 from ..common.io import Spinner, dashlist, time_recorder
 from ..common.path import get_major_minor_version, paths_equal
-from ..exceptions import (PackagesNotFoundError, SpecsConfigurationConflictError,
-                          UnsatisfiableError)
+from ..exceptions import PackagesNotFoundError, SpecsConfigurationConflictError, UnsatisfiableError
 from ..history import History
 from ..models.channel import Channel
 from ..models.enums import NoarchType
@@ -67,8 +66,16 @@ class Solver:
 
     """
 
-    def __init__(self, prefix, channels, subdirs=(), specs_to_add=(), specs_to_remove=(),
-                 repodata_fn=REPODATA_FN, command=NULL):
+    def __init__(
+        self,
+        prefix,
+        channels,
+        subdirs=(),
+        specs_to_add=(),
+        specs_to_remove=(),
+        repodata_fn=REPODATA_FN,
+        command=NULL,
+    ):
         """
         Args:
             prefix (str):
@@ -101,9 +108,16 @@ class Solver:
         self._prepared = False
         self._pool_cache = {}
 
-    def solve_for_transaction(self, update_modifier=NULL, deps_modifier=NULL, prune=NULL,
-                              ignore_pinned=NULL, force_remove=NULL, force_reinstall=NULL,
-                              should_retry_solve=False):
+    def solve_for_transaction(
+        self,
+        update_modifier=NULL,
+        deps_modifier=NULL,
+        prune=NULL,
+        ignore_pinned=NULL,
+        force_remove=NULL,
+        force_reinstall=NULL,
+        should_retry_solve=False,
+    ):
         """Gives an UnlinkLinkTransaction instance that can be used to execute the solution
         on an environment.
 
@@ -131,21 +145,39 @@ class Solver:
             # the integration level in the PrivateEnvIntegrationTests in test_create.py.
             raise NotImplementedError()
         else:
-            unlink_precs, link_precs = self.solve_for_diff(update_modifier, deps_modifier,
-                                                           prune, ignore_pinned,
-                                                           force_remove, force_reinstall,
-                                                           should_retry_solve)
-            stp = PrefixSetup(self.prefix, unlink_precs, link_precs,
-                              self.specs_to_remove, self.specs_to_add, self.neutered_specs)
+            unlink_precs, link_precs = self.solve_for_diff(
+                update_modifier,
+                deps_modifier,
+                prune,
+                ignore_pinned,
+                force_remove,
+                force_reinstall,
+                should_retry_solve,
+            )
+            stp = PrefixSetup(
+                self.prefix,
+                unlink_precs,
+                link_precs,
+                self.specs_to_remove,
+                self.specs_to_add,
+                self.neutered_specs,
+            )
             # TODO: Only explicitly requested remove and update specs are being included in
             #   History right now. Do we need to include other categories from the solve?
 
             self._notify_conda_outdated(link_precs)
             return UnlinkLinkTransaction(stp)
 
-    def solve_for_diff(self, update_modifier=NULL, deps_modifier=NULL, prune=NULL,
-                       ignore_pinned=NULL, force_remove=NULL, force_reinstall=NULL,
-                       should_retry_solve=False):
+    def solve_for_diff(
+        self,
+        update_modifier=NULL,
+        deps_modifier=NULL,
+        prune=NULL,
+        ignore_pinned=NULL,
+        force_remove=NULL,
+        force_reinstall=NULL,
+        should_retry_solve=False,
+    ):
         """Gives the package references to remove from an environment, followed by
         the package references to add to an environment.
 
@@ -174,8 +206,9 @@ class Solver:
                 dependency order from roots to leaves.
 
         """
-        final_precs = self.solve_final_state(update_modifier, deps_modifier, prune, ignore_pinned,
-                                             force_remove, should_retry_solve)
+        final_precs = self.solve_final_state(
+            update_modifier, deps_modifier, prune, ignore_pinned, force_remove, should_retry_solve
+        )
         unlink_precs, link_precs = diff_for_unlink_link_precs(
             self.prefix, final_precs, self.specs_to_add, force_reinstall
         )
@@ -183,13 +216,22 @@ class Solver:
         # assert that all unlink_precs are manageable
         unmanageable = groupby(lambda prec: prec.is_unmanageable, unlink_precs).get(True)
         if unmanageable:
-            raise RuntimeError("Cannot unlink unmanageable packages:%s"
-                               % dashlist(prec.record_id() for prec in unmanageable))
+            raise RuntimeError(
+                "Cannot unlink unmanageable packages:%s"
+                % dashlist(prec.record_id() for prec in unmanageable)
+            )
 
         return unlink_precs, link_precs
 
-    def solve_final_state(self, update_modifier=NULL, deps_modifier=NULL, prune=NULL,
-                          ignore_pinned=NULL, force_remove=NULL, should_retry_solve=False):
+    def solve_final_state(
+        self,
+        update_modifier=NULL,
+        deps_modifier=NULL,
+        prune=NULL,
+        ignore_pinned=NULL,
+        force_remove=NULL,
+        should_retry_solve=False,
+    ):
         """Gives the final, solved state of the environment.
 
         Args:
@@ -237,16 +279,24 @@ class Solver:
         ignore_pinned = context.ignore_pinned if ignore_pinned is NULL else ignore_pinned
         force_remove = context.force_remove if force_remove is NULL else force_remove
 
-        log.debug("solving prefix %s\n"
-                  "  specs_to_remove: %s\n"
-                  "  specs_to_add: %s\n"
-                  "  prune: %s", self.prefix, self.specs_to_remove, self.specs_to_add, prune)
+        log.debug(
+            "solving prefix %s\n" "  specs_to_remove: %s\n" "  specs_to_add: %s\n" "  prune: %s",
+            self.prefix,
+            self.specs_to_remove,
+            self.specs_to_add,
+            prune,
+        )
 
-        retrying = hasattr(self, 'ssc')
+        retrying = hasattr(self, "ssc")
 
         if not retrying:
             ssc = SolverStateContainer(
-                self.prefix, update_modifier, deps_modifier, prune, ignore_pinned, force_remove,
+                self.prefix,
+                update_modifier,
+                deps_modifier,
+                prune,
+                ignore_pinned,
+                force_remove,
                 should_retry_solve,
             )
             self.ssc = ssc
@@ -260,13 +310,19 @@ class Solver:
         if self.specs_to_remove and force_remove:
             if self.specs_to_add:
                 raise NotImplementedError()
-            solution = tuple(prec for prec in ssc.solution_precs
-                             if not any(spec.match(prec) for spec in self.specs_to_remove))
+            solution = tuple(
+                prec
+                for prec in ssc.solution_precs
+                if not any(spec.match(prec) for spec in self.specs_to_remove)
+            )
             return IndexedSet(PrefixGraph(solution).graph)
 
         # Check if specs are satisfied by current environment. If they are, exit early.
-        if (update_modifier == UpdateModifier.SPECS_SATISFIED_SKIP_SOLVE
-                and not self.specs_to_remove and not prune):
+        if (
+            update_modifier == UpdateModifier.SPECS_SATISFIED_SKIP_SOLVE
+            and not self.specs_to_remove
+            and not prune
+        ):
             for spec in self.specs_to_add:
                 if not next(ssc.prefix_data.query(spec), None):
                     break
@@ -276,21 +332,29 @@ class Solver:
                 return IndexedSet(PrefixGraph(ssc.solution_precs).graph)
 
         if not ssc.r:
-            with Spinner("Collecting package metadata (%s)" % self._repodata_fn,
-                         (not context.verbosity and not context.quiet and not retrying),
-                         context.json):
+            with Spinner(
+                "Collecting package metadata (%s)" % self._repodata_fn,
+                (not context.verbosity and not context.quiet and not retrying),
+                context.json,
+            ):
                 ssc = self._collect_all_metadata(ssc)
 
         if should_retry_solve and update_modifier == UpdateModifier.FREEZE_INSTALLED:
             fail_message = "failed with initial frozen solve. Retrying with flexible solve.\n"
         elif self._repodata_fn != REPODATA_FN:
-            fail_message = ("failed with repodata from %s, will retry with next repodata"
-                            " source.\n" % self._repodata_fn)
+            fail_message = (
+                "failed with repodata from %s, will retry with next repodata"
+                " source.\n" % self._repodata_fn
+            )
         else:
             fail_message = "failed\n"
 
-        with Spinner("Solving environment", not context.verbosity and not context.quiet,
-                     context.json, fail_message=fail_message):
+        with Spinner(
+            "Solving environment",
+            not context.verbosity and not context.quiet,
+            context.json,
+            fail_message=fail_message,
+        ):
             ssc = self._remove_specs(ssc)
             ssc = self._add_specs(ssc)
             solution_precs = copy.copy(ssc.solution_precs)
@@ -303,44 +367,53 @@ class Solver:
 
             if ssc.update_modifier == UpdateModifier.UPDATE_SPECS:
                 constrained = self.get_constrained_packages(
-                    pre_packages, post_packages, ssc.index.keys())
+                    pre_packages, post_packages, ssc.index.keys()
+                )
                 if len(constrained) > 0:
                     for spec in constrained:
                         self.determine_constricting_specs(spec, ssc.solution_precs)
 
             # if there were any conflicts, we need to add their orphaned deps back in
             if ssc.add_back_map:
-                orphan_precs = (set(solution_precs)
-                                - set(ssc.solution_precs)
-                                - set(ssc.add_back_map))
+                orphan_precs = (
+                    set(solution_precs) - set(ssc.solution_precs) - set(ssc.add_back_map)
+                )
                 solution_prec_names = [_.name for _ in ssc.solution_precs]
                 ssc.solution_precs.extend(
-                    [_ for _ in orphan_precs
-                     if _.name not in ssc.specs_map and _.name not in solution_prec_names])
+                    [
+                        _
+                        for _ in orphan_precs
+                        if _.name not in ssc.specs_map and _.name not in solution_prec_names
+                    ]
+                )
 
             ssc = self._post_sat_handling(ssc)
 
         time_recorder.log_totals()
 
         ssc.solution_precs = IndexedSet(PrefixGraph(ssc.solution_precs).graph)
-        log.debug("solved prefix %s\n"
-                  "  solved_linked_dists:\n"
-                  "    %s\n",
-                  self.prefix, "\n    ".join(prec.dist_str() for prec in ssc.solution_precs))
+        log.debug(
+            "solved prefix %s\n" "  solved_linked_dists:\n" "    %s\n",
+            self.prefix,
+            "\n    ".join(prec.dist_str() for prec in ssc.solution_precs),
+        )
 
         return ssc.solution_precs
 
     def determine_constricting_specs(self, spec, solution_precs):
-        highest_version = [VersionOrder(sp.version) for sp in solution_precs
-                           if sp.name == spec.name][0]
+        highest_version = [
+            VersionOrder(sp.version) for sp in solution_precs if sp.name == spec.name
+        ][0]
         constricting = []
         for prec in solution_precs:
             if any(j for j in prec.depends if spec.name in j):
                 for dep in prec.depends:
                     m_dep = MatchSpec(dep)
-                    if m_dep.name == spec.name and \
-                            m_dep.version is not None and \
-                            (m_dep.version.exact_value or "<" in m_dep.version.spec):
+                    if (
+                        m_dep.name == spec.name
+                        and m_dep.version is not None
+                        and (m_dep.version.exact_value or "<" in m_dep.version.spec)
+                    ):
                         if "," in m_dep.version.spec:
                             constricting.extend(
                                 [
@@ -358,11 +431,16 @@ class Solver:
 
         print(f"\n\nUpdating {spec.name} is constricted by \n")
         for const in hard_constricting:
-            print("{package} -> requires {conflict_dep}".format(
-                package=const[0], conflict_dep=const[1]))
-        print("\nIf you are sure you want an update of your package either try "
-              "`conda update --all` or install a specific version of the "
-              "package you want using `conda install <pkg>=<version>`\n")
+            print(
+                "{package} -> requires {conflict_dep}".format(
+                    package=const[0], conflict_dep=const[1]
+                )
+            )
+        print(
+            "\nIf you are sure you want an update of your package either try "
+            "`conda update --all` or install a specific version of the "
+            "package you want using `conda install <pkg>=<version>`\n"
+        )
         return hard_constricting
 
     def get_request_package_in_solution(self, solution_precs, specs_map):
@@ -371,12 +449,17 @@ class Solver:
             update_pkg_request = pkg.name
 
             requested_packages[update_pkg_request] = [
-                (i.name, str(i.version)) for i in solution_precs
+                (i.name, str(i.version))
+                for i in solution_precs
                 if i.name == update_pkg_request and i.version is not None
             ]
             requested_packages[update_pkg_request].extend(
-                [(v.name, str(v.version)) for k, v in specs_map.items()
-                 if k == update_pkg_request and v.version is not None])
+                [
+                    (v.name, str(v.version))
+                    for k, v in specs_map.items()
+                    if k == update_pkg_request and v.version is not None
+                ]
+            )
 
         return requested_packages
 
@@ -393,7 +476,7 @@ class Solver:
             return update_constrained
 
         for pkg in self.specs_to_add:
-            if pkg.name.startswith('__'):  # ignore virtual packages
+            if pkg.name.startswith("__"):  # ignore virtual packages
                 continue
             current_version = max(i[1] for i in pre_packages[pkg.name])
             if current_version == max(i.version for i in index_keys if i.name == pkg.name):
@@ -411,8 +494,14 @@ class Solver:
         # these are things that we want to keep even if they're not explicitly specified.  This
         #     is to compensate for older installers not recording these appropriately for them
         #     to be preserved.
-        for pkg_name in ('anaconda', 'conda', 'conda-build', 'python.app',
-                         'console_shortcut', 'powershell_shortcut'):
+        for pkg_name in (
+            "anaconda",
+            "conda",
+            "conda-build",
+            "python.app",
+            "console_shortcut",
+            "powershell_shortcut",
+        ):
             if pkg_name not in ssc.specs_map and ssc.prefix_data.get(pkg_name, None):
                 ssc.specs_map[pkg_name] = MatchSpec(pkg_name)
 
@@ -420,7 +509,7 @@ class Solver:
         virtual_pkg_index = {}
         _supplement_index_with_system(virtual_pkg_index)
         virtual_pkgs = [p.name for p in virtual_pkg_index.keys()]
-        for virtual_pkgs_name in (virtual_pkgs):
+        for virtual_pkgs_name in virtual_pkgs:
             if virtual_pkgs_name not in ssc.specs_map:
                 ssc.specs_map[virtual_pkgs_name] = MatchSpec(virtual_pkgs_name)
 
@@ -435,9 +524,11 @@ class Solver:
             #    declaration that it is manually installed, much like the
             #    history map. It may still be replaced if it is in conflict,
             #    but it is not just an indirect dep that can be pruned.
-            if (not ssc.specs_from_history_map
-                    or MatchSpec(prec.name) in context.aggressive_update_packages
-                    or prec.subdir == 'pypi'):
+            if (
+                not ssc.specs_from_history_map
+                or MatchSpec(prec.name) in context.aggressive_update_packages
+                or prec.subdir == "pypi"
+            ):
                 ssc.specs_map.update({prec.name: MatchSpec(prec.name)})
 
         prepared_specs = {
@@ -480,7 +571,8 @@ class Solver:
 
             # ensure that each spec in specs_to_remove is actually associated with removed records
             unmatched_specs_to_remove = tuple(
-                spec for spec in no_removed_records_specs
+                spec
+                for spec in no_removed_records_specs
                 if not any(spec.match(rec) for rec in all_removed_records)
             )
             if unmatched_specs_to_remove:
@@ -494,7 +586,7 @@ class Solver:
                 rec_has_a_feature = set(rec.features or ()) & feature_names
                 if rec_has_a_feature and rec.name in ssc.specs_from_history_map:
                     spec = ssc.specs_map.get(rec.name, MatchSpec(rec.name))
-                    spec._match_components.pop('features', None)
+                    spec._match_components.pop("features", None)
                     ssc.specs_map[spec.name] = spec
                 else:
                     ssc.specs_map.pop(rec.name, None)
@@ -517,12 +609,19 @@ class Solver:
             ssc.solution_precs = tuple(ssc.index.get(k, k) for k in ssc.solution_precs)
             _, inconsistent_precs = ssc.r.bad_installed(ssc.solution_precs, ())
         if log.isEnabledFor(DEBUG):
-            log.debug("inconsistent precs: %s",
-                      dashlist(inconsistent_precs) if inconsistent_precs else 'None')
+            log.debug(
+                "inconsistent precs: %s",
+                dashlist(inconsistent_precs) if inconsistent_precs else "None",
+            )
         if inconsistent_precs:
-            print(dedent("""
+            print(
+                dedent(
+                    """
             The environment is inconsistent, please check the package plan carefully
-            The following packages are causing the inconsistency:"""), file=sys.stderr)
+            The following packages are causing the inconsistency:"""
+                ),
+                file=sys.stderr,
+            )
             print(dashlist(inconsistent_precs), file=sys.stderr)
             for prec in inconsistent_precs:
                 # pop and save matching spec in specs_map
@@ -534,10 +633,11 @@ class Solver:
                 # inconsistent environments should maintain the python version
                 # unless explicitly requested by the user. This along with the logic in
                 # _add_specs maintains the major.minor version
-                if prec.name == 'python' and spec:
-                    ssc.specs_map['python'] = spec
-            ssc.solution_precs = tuple(prec for prec in ssc.solution_precs
-                                       if prec not in inconsistent_precs)
+                if prec.name == "python" and spec:
+                    ssc.specs_map["python"] = spec
+            ssc.solution_precs = tuple(
+                prec for prec in ssc.solution_precs if prec not in inconsistent_precs
+            )
         return ssc
 
     def _package_has_updates(self, ssc, spec, installed_pool):
@@ -550,13 +650,18 @@ class Solver:
                 if prec.version > installed_prec.version:
                     has_update = True
                     break
-                elif (prec.version == installed_prec.version and
-                      prec.build_number > installed_prec.build_number):
+                elif (
+                    prec.version == installed_prec.version
+                    and prec.build_number > installed_prec.build_number
+                ):
                     has_update = True
                     break
         # let conda determine the latest version by just adding a name spec
-        return (MatchSpec(spec.name, version=prec.version, build_number=prec.build_number)
-                if has_update else spec)
+        return (
+            MatchSpec(spec.name, version=prec.version, build_number=prec.build_number)
+            if has_update
+            else spec
+        )
 
     def _should_freeze(self, ssc, target_prec, conflict_specs, explicit_pool, installed_pool):
         # never, ever freeze anything if we have no history.
@@ -568,9 +673,9 @@ class Solver:
 
         # if all package specs have overlapping package choices (satisfiable in at least one way)
         pkg_name = target_prec.name
-        no_conflict = (pkg_name not in conflict_specs and
-                       (pkg_name not in explicit_pool or
-                        target_prec in explicit_pool[pkg_name]))
+        no_conflict = pkg_name not in conflict_specs and (
+            pkg_name not in explicit_pool or target_prec in explicit_pool[pkg_name]
+        )
 
         return no_conflict
 
@@ -604,7 +709,9 @@ class Solver:
             matches_for_spec = tuple(prec for prec in ssc.solution_precs if spec.match(prec))
             if matches_for_spec:
                 if len(matches_for_spec) != 1:
-                    raise CondaError(dals("""
+                    raise CondaError(
+                        dals(
+                            """
                     Conda encountered an error with your environment.  Please report an issue
                     at https://github.com/conda/conda/issues.  In your report, please include
                     the output of 'conda info' and 'conda list' for the active environment, along
@@ -612,20 +719,23 @@ class Solver:
                       pkg_name: %s
                       spec: %s
                       matches_for_spec: %s
-                    """) % (pkg_name, spec,
-                            dashlist((str(s) for s in matches_for_spec), indent=4)))
+                    """
+                        )
+                        % (pkg_name, spec, dashlist((str(s) for s in matches_for_spec), indent=4))
+                    )
                 target_prec = matches_for_spec[0]
                 if target_prec.is_unmanageable:
                     ssc.specs_map[pkg_name] = target_prec.to_match_spec()
                 elif MatchSpec(pkg_name) in context.aggressive_update_packages:
                     ssc.specs_map[pkg_name] = MatchSpec(pkg_name)
-                elif self._should_freeze(ssc, target_prec, conflict_specs, explicit_pool,
-                                         installed_pool):
+                elif self._should_freeze(
+                    ssc, target_prec, conflict_specs, explicit_pool, installed_pool
+                ):
                     ssc.specs_map[pkg_name] = target_prec.to_match_spec()
                 elif pkg_name in ssc.specs_from_history_map:
                     ssc.specs_map[pkg_name] = MatchSpec(
-                        ssc.specs_from_history_map[pkg_name],
-                        target=target_prec.dist_str())
+                        ssc.specs_from_history_map[pkg_name], target=target_prec.dist_str()
+                    )
                 else:
                     ssc.specs_map[pkg_name] = MatchSpec(pkg_name, target=target_prec.dist_str())
 
@@ -638,8 +748,11 @@ class Solver:
                     ssc.specs_map[s.name] = MatchSpec(s, optional=False)
                     pin_overrides.add(s.name)
                 else:
-                    log.warn("pinned spec %s conflicts with explicit specs.  "
-                             "Overriding pinned spec.", s)
+                    log.warn(
+                        "pinned spec %s conflicts with explicit specs.  "
+                        "Overriding pinned spec.",
+                        s,
+                    )
 
         # we want to freeze any packages in the env that are not conflicts, so that the
         #     solve goes faster.  This is kind of like an iterative solve, except rather
@@ -654,7 +767,8 @@ class Solver:
                     ssc.specs_map[prec.name] = prec.to_match_spec()
                 else:
                     ssc.specs_map[prec.name] = MatchSpec(
-                        prec.name, target=prec.to_match_spec(), optional=True)
+                        prec.name, target=prec.to_match_spec(), optional=True
+                    )
         log.debug("specs_map with targets: %s", ssc.specs_map)
 
         # If we're in UPDATE_ALL mode, we need to drop all the constraints attached to specs,
@@ -675,7 +789,7 @@ class Solver:
                 )
                 for prec in ssc.prefix_data.iter_records():
                     # treat pip-installed stuff as explicitly installed, too.
-                    if prec.subdir == 'pypi':
+                    if prec.subdir == "pypi":
                         ssc.specs_map.update({prec.name: MatchSpec(prec.name)})
             else:
                 ssc.specs_map = {
@@ -691,53 +805,65 @@ class Solver:
         #    This factors in pins and also ignores specs from the history.  It is unfreezing only
         #    for the indirect specs that otherwise conflict with update of the immediate request
         elif ssc.update_modifier == UpdateModifier.UPDATE_SPECS:
-            skip = lambda x: ((x.name not in pin_overrides and
-                               any(x.name == _.name for _ in ssc.pinned_specs) and
-                               not ssc.ignore_pinned) or
-                              x.name in ssc.specs_from_history_map)
+            skip = lambda x: (
+                (
+                    x.name not in pin_overrides
+                    and any(x.name == _.name for _ in ssc.pinned_specs)
+                    and not ssc.ignore_pinned
+                )
+                or x.name in ssc.specs_from_history_map
+            )
 
-            specs_to_add = tuple(self._package_has_updates(ssc, _, installed_pool)
-                                 for _ in self.specs_to_add if not skip(_))
+            specs_to_add = tuple(
+                self._package_has_updates(ssc, _, installed_pool)
+                for _ in self.specs_to_add
+                if not skip(_)
+            )
             # the index is sorted, so the first record here gives us what we want.
-            conflicts = ssc.r.get_conflicting_specs(tuple(MatchSpec(_)
-                                                          for _ in ssc.specs_map.values()),
-                                                    specs_to_add)
+            conflicts = ssc.r.get_conflicting_specs(
+                tuple(MatchSpec(_) for _ in ssc.specs_map.values()), specs_to_add
+            )
             for conflict in conflicts or ():
                 # neuter the spec due to a conflict
-                if (conflict.name in ssc.specs_map and (
+                if (
+                    conflict.name in ssc.specs_map
+                    and (
                         # add optional because any pinned specs will include it
-                        MatchSpec(conflict, optional=True) not in ssc.pinned_specs or
-                        ssc.ignore_pinned) and
-                        conflict.name not in ssc.specs_from_history_map):
+                        MatchSpec(conflict, optional=True) not in ssc.pinned_specs
+                        or ssc.ignore_pinned
+                    )
+                    and conflict.name not in ssc.specs_from_history_map
+                ):
                     ssc.specs_map[conflict.name] = MatchSpec(conflict.name)
 
         # As a business rule, we never want to update python beyond the current minor version,
         # unless that's requested explicitly by the user (which we actively discourage).
-        py_in_prefix = any(_.name == 'python' for _ in ssc.solution_precs)
-        py_requested_explicitly = any(s.name == 'python' for s in self.specs_to_add)
+        py_in_prefix = any(_.name == "python" for _ in ssc.solution_precs)
+        py_requested_explicitly = any(s.name == "python" for s in self.specs_to_add)
         if py_in_prefix and not py_requested_explicitly:
-            python_prefix_rec = ssc.prefix_data.get('python')
+            python_prefix_rec = ssc.prefix_data.get("python")
             freeze_installed = ssc.update_modifier == UpdateModifier.FREEZE_INSTALLED
-            if 'python' not in conflict_specs and freeze_installed:
-                ssc.specs_map['python'] = python_prefix_rec.to_match_spec()
+            if "python" not in conflict_specs and freeze_installed:
+                ssc.specs_map["python"] = python_prefix_rec.to_match_spec()
             else:
                 # will our prefix record conflict with any explicit spec?  If so, don't add
                 #     anything here - let python float when it hasn't been explicitly specified
-                python_spec = ssc.specs_map.get('python', MatchSpec('python'))
-                if not python_spec.get('version'):
-                    pinned_version = get_major_minor_version(python_prefix_rec.version) + '.*'
+                python_spec = ssc.specs_map.get("python", MatchSpec("python"))
+                if not python_spec.get("version"):
+                    pinned_version = get_major_minor_version(python_prefix_rec.version) + ".*"
                     python_spec = MatchSpec(python_spec, version=pinned_version)
 
-                spec_set = (python_spec, ) + tuple(self.specs_to_add)
+                spec_set = (python_spec,) + tuple(self.specs_to_add)
                 if ssc.r.get_conflicting_specs(spec_set, self.specs_to_add):
-                    if self._command != 'install' or (
-                            self._repodata_fn == REPODATA_FN and
-                            (not ssc.should_retry_solve or not freeze_installed)):
+                    if self._command != "install" or (
+                        self._repodata_fn == REPODATA_FN
+                        and (not ssc.should_retry_solve or not freeze_installed)
+                    ):
                         # raises a hopefully helpful error message
                         ssc.r.find_conflicts(spec_set)
                     else:
                         raise UnsatisfiableError({})
-                ssc.specs_map['python'] = python_spec
+                ssc.specs_map["python"] = python_spec
 
         # For the aggressive_update_packages configuration parameter, we strip any target
         # that's been set.
@@ -752,18 +878,18 @@ class Solver:
 
         # As a business rule, we never want to downgrade conda below the current version,
         # unless that's requested explicitly by the user (which we actively discourage).
-        if 'conda' in ssc.specs_map and paths_equal(self.prefix, context.conda_prefix):
-            conda_prefix_rec = ssc.prefix_data.get('conda')
+        if "conda" in ssc.specs_map and paths_equal(self.prefix, context.conda_prefix):
+            conda_prefix_rec = ssc.prefix_data.get("conda")
             if conda_prefix_rec:
                 version_req = ">=%s" % conda_prefix_rec.version
-                conda_requested_explicitly = any(s.name == 'conda' for s in self.specs_to_add)
-                conda_spec = ssc.specs_map['conda']
-                conda_in_specs_to_add_version = ssc.specs_map.get('conda', {}).get('version')
+                conda_requested_explicitly = any(s.name == "conda" for s in self.specs_to_add)
+                conda_spec = ssc.specs_map["conda"]
+                conda_in_specs_to_add_version = ssc.specs_map.get("conda", {}).get("version")
                 if not conda_in_specs_to_add_version:
                     conda_spec = MatchSpec(conda_spec, version=version_req)
                 if context.auto_update_conda and not conda_requested_explicitly:
-                    conda_spec = MatchSpec('conda', version=version_req, target=None)
-                ssc.specs_map['conda'] = conda_spec
+                    conda_spec = MatchSpec("conda", version=version_req, target=None)
+                ssc.specs_map["conda"] = conda_spec
 
         return ssc
 
@@ -793,8 +919,9 @@ class Solver:
         # may not be the only unsatisfiable subset. We may have to call get_conflicting_specs()
         # several times, each time making modifications to loosen constraints.
 
-        conflicting_specs = set(ssc.r.get_conflicting_specs(tuple(final_environment_specs),
-                                                            self.specs_to_add) or [])
+        conflicting_specs = set(
+            ssc.r.get_conflicting_specs(tuple(final_environment_specs), self.specs_to_add) or []
+        )
         while conflicting_specs:
             specs_modified = False
             if log.isEnabledFor(DEBUG):
@@ -810,57 +937,65 @@ class Solver:
             # pinned_specs, but we override that in _add_specs to make it
             # non-optional when there's a name match in the explicit package
             # pool
-            conflicting_pinned_specs = groupby(lambda s: MatchSpec(s, optional=True)
-                                               in ssc.pinned_specs, conflicting_specs)
+            conflicting_pinned_specs = groupby(
+                lambda s: MatchSpec(s, optional=True) in ssc.pinned_specs, conflicting_specs
+            )
 
             if conflicting_pinned_specs.get(True):
                 in_specs_map = grouped_specs.get(True, ())
                 pinned_conflicts = conflicting_pinned_specs.get(True, ())
-                in_specs_map_or_specs_to_add = ((set(in_specs_map) | set(self.specs_to_add))
-                                                - set(pinned_conflicts))
+                in_specs_map_or_specs_to_add = (set(in_specs_map) | set(self.specs_to_add)) - set(
+                    pinned_conflicts
+                )
 
                 raise SpecsConfigurationConflictError(
                     sorted(s.__str__() for s in in_specs_map_or_specs_to_add),
                     sorted(s.__str__() for s in {s for s in pinned_conflicts}),
-                    self.prefix
+                    self.prefix,
                 )
             for spec in conflicting_specs:
                 if spec.target and not spec.optional:
                     specs_modified = True
                     final_environment_specs.remove(spec)
-                    if spec.get('version'):
+                    if spec.get("version"):
                         neutered_spec = MatchSpec(spec.name, version=spec.version)
                     else:
                         neutered_spec = MatchSpec(spec.name)
                     final_environment_specs.add(neutered_spec)
                     ssc.specs_map[spec.name] = neutered_spec
             if specs_modified:
-                conflicting_specs = set(ssc.r.get_conflicting_specs(
-                    tuple(final_environment_specs), self.specs_to_add))
+                conflicting_specs = set(
+                    ssc.r.get_conflicting_specs(tuple(final_environment_specs), self.specs_to_add)
+                )
             else:
                 # Let r.solve() use r.find_conflicts() to report conflict chains.
                 break
 
         # Finally! We get to call SAT.
         if log.isEnabledFor(DEBUG):
-            log.debug("final specs to add: %s",
-                      dashlist(sorted(str(s) for s in final_environment_specs)))
+            log.debug(
+                "final specs to add: %s", dashlist(sorted(str(s) for s in final_environment_specs))
+            )
 
         # this will raise for unsatisfiable stuff.  We can
         if not conflicting_specs or context.unsatisfiable_hints:
-            ssc.solution_precs = ssc.r.solve(tuple(final_environment_specs),
-                                             specs_to_add=self.specs_to_add,
-                                             history_specs=ssc.specs_from_history_map,
-                                             should_retry_solve=ssc.should_retry_solve
-                                             )
+            ssc.solution_precs = ssc.r.solve(
+                tuple(final_environment_specs),
+                specs_to_add=self.specs_to_add,
+                history_specs=ssc.specs_from_history_map,
+                should_retry_solve=ssc.should_retry_solve,
+            )
         else:
             # shortcut to raise an unsat error without needing another solve step when
             # unsatisfiable_hints is off
             raise UnsatisfiableError({})
 
-        self.neutered_specs = tuple(v for k, v in ssc.specs_map.items() if
-                                    k in ssc.specs_from_history_map and
-                                    v.strictness < ssc.specs_from_history_map[k].strictness)
+        self.neutered_specs = tuple(
+            v
+            for k, v in ssc.specs_map.items()
+            if k in ssc.specs_from_history_map
+            and v.strictness < ssc.specs_from_history_map[k].strictness
+        )
 
         # add back inconsistent packages to solution
         if ssc.add_back_map:
@@ -904,15 +1039,18 @@ class Solver:
                 if spec.match(prec)
             }
             remove_before_adding_back = {prec.name for prec in only_add_these}
-            _no_deps_solution = IndexedSet(prec for prec in _no_deps_solution
-                                           if prec.name not in remove_before_adding_back)
+            _no_deps_solution = IndexedSet(
+                prec for prec in _no_deps_solution if prec.name not in remove_before_adding_back
+            )
             _no_deps_solution |= only_add_these
             ssc.solution_precs = _no_deps_solution
 
             # TODO: check if solution is satisfiable, and emit warning if it's not
 
-        elif (ssc.deps_modifier == DepsModifier.ONLY_DEPS
-                and ssc.update_modifier != UpdateModifier.UPDATE_DEPS):
+        elif (
+            ssc.deps_modifier == DepsModifier.ONLY_DEPS
+            and ssc.update_modifier != UpdateModifier.UPDATE_DEPS
+        ):
             # Using a special instance of PrefixGraph to remove youngest child nodes that match
             # the original specs_to_add.  It's important to remove only the *youngest* child nodes,
             # because a typical use might be `conda install --only-deps python=2 flask`, and in
@@ -980,7 +1118,7 @@ class Solver:
                 deps_modifier=ssc.deps_modifier,
                 prune=ssc.prune,
                 ignore_pinned=ssc.ignore_pinned,
-                force_remove=ssc.force_remove
+                force_remove=ssc.force_remove,
             )
             ssc.prune = False
 
@@ -994,7 +1132,7 @@ class Solver:
     def _notify_conda_outdated(self, link_precs):
         if not context.notify_outdated_conda or context.quiet:
             return
-        current_conda_prefix_rec = PrefixData(context.conda_prefix).get('conda', None)
+        current_conda_prefix_rec = PrefixData(context.conda_prefix).get("conda", None)
         if current_conda_prefix_rec:
             channel_name = current_conda_prefix_rec.channel.canonical_name
             if channel_name == UNKNOWN_CHANNEL:
@@ -1008,8 +1146,9 @@ class Solver:
                     return
 
             conda_newer_precs = sorted(
-                SubdirData.query_all(conda_newer_spec, self.channels, self.subdirs,
-                                     repodata_fn=self._repodata_fn),
+                SubdirData.query_all(
+                    conda_newer_spec, self.channels, self.subdirs, repodata_fn=self._repodata_fn
+                ),
                 key=lambda x: VersionOrder(x.version)
                 # VersionOrder is fine here rather than r.version_key because all precs
                 # should come from the same channel
@@ -1018,7 +1157,9 @@ class Solver:
                 latest_version = conda_newer_precs[-1].version
                 # If conda comes from defaults, ensure we're giving instructions to users
                 # that should resolve release timing issues between defaults and conda-forge.
-                print(dedent(f"""
+                print(
+                    dedent(
+                        f"""
 
                 ==> WARNING: A newer version of conda exists. <==
                   current version: {CONDA_VERSION}
@@ -1032,7 +1173,10 @@ class Solver:
 
                      conda install conda={latest_version}
 
-                """), file=sys.stderr)
+                """
+                    ),
+                    file=sys.stderr,
+                )
 
     def _prepare(self, prepared_specs):
         # All of this _prepare() method is hidden away down here. Someday we may want to further
@@ -1041,7 +1185,7 @@ class Solver:
         if self._prepared and prepared_specs == self._prepared_specs:
             return self._index, self._r
 
-        if hasattr(self, '_index') and self._index:
+        if hasattr(self, "_index") and self._index:
             # added in install_actions for conda-build back-compat
             self._prepared_specs = prepared_specs
             _supplement_index_with_system(self._index)
@@ -1055,14 +1199,15 @@ class Solver:
             additional_channels = set()
             for spec in self.specs_to_add:
                 # TODO: correct handling for subdir isn't yet done
-                channel = spec.get_exact_value('channel')
+                channel = spec.get_exact_value("channel")
                 if channel:
                     additional_channels.add(Channel(channel))
 
             self.channels.update(additional_channels)
 
-            reduced_index = get_reduced_index(self.prefix, self.channels,
-                                              self.subdirs, prepared_specs, self._repodata_fn)
+            reduced_index = get_reduced_index(
+                self.prefix, self.channels, self.subdirs, prepared_specs, self._repodata_fn
+            )
             _supplement_index_with_system(reduced_index)
 
             self._prepared_specs = prepared_specs
@@ -1077,8 +1222,16 @@ class SolverStateContainer:
     # A mutable container with defined attributes to help keep method signatures clean
     # and also keep track of important state variables.
 
-    def __init__(self, prefix, update_modifier, deps_modifier, prune, ignore_pinned, force_remove,
-                 should_retry_solve):
+    def __init__(
+        self,
+        prefix,
+        update_modifier,
+        deps_modifier,
+        prune,
+        ignore_pinned,
+        force_remove,
+        should_retry_solve,
+    ):
         # prefix, channels, subdirs, specs_to_add, specs_to_remove
         # self.prefix = prefix
         # self.channels = channels
@@ -1121,7 +1274,7 @@ class SolverStateContainer:
 
     @memoizedproperty
     def track_features_specs(self):
-        return tuple(MatchSpec(x + '@') for x in context.track_features)
+        return tuple(MatchSpec(x + "@") for x in context.track_features)
 
     @memoizedproperty
     def pinned_specs(self):
@@ -1139,11 +1292,12 @@ class SolverStateContainer:
 
 def get_pinned_specs(prefix):
     """Find pinned specs from file and return a tuple of MatchSpec."""
-    pinfile = join(prefix, 'conda-meta', 'pinned')
+    pinfile = join(prefix, "conda-meta", "pinned")
     if exists(pinfile):
         with open(pinfile) as f:
-            from_file = (i for i in f.read().strip().splitlines()
-                         if i and not i.strip().startswith('#'))
+            from_file = (
+                i for i in f.read().strip().splitlines() if i and not i.strip().startswith("#")
+            )
     else:
         from_file = ()
 
@@ -1176,7 +1330,7 @@ def diff_for_unlink_link_precs(prefix, final_precs, specs_to_add=(), force_reins
             _add_to_unlink_and_link(prec)
 
     # add back 'noarch: python' packages to unlink and link if python version changes
-    python_spec = MatchSpec('python')
+    python_spec = MatchSpec("python")
     prev_python = next((rec for rec in previous_records if python_spec.match(rec)), None)
     curr_python = next((rec for rec in final_precs if python_spec.match(rec)), None)
     gmm = get_major_minor_version
@@ -1185,8 +1339,9 @@ def diff_for_unlink_link_precs(prefix, final_precs, specs_to_add=(), force_reins
         for prec in noarch_python_precs:
             _add_to_unlink_and_link(prec)
 
-    unlink_precs = IndexedSet(reversed(sorted(unlink_precs,
-                                              key=lambda x: previous_records.index(x))))
+    unlink_precs = IndexedSet(
+        reversed(sorted(unlink_precs, key=lambda x: previous_records.index(x)))
+    )
     link_precs = IndexedSet(sorted(link_precs, key=lambda x: final_precs.index(x)))
     return unlink_precs, link_precs
 
