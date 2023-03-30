@@ -37,6 +37,7 @@ class AttrDict(dict):
         >>> d.b, d['b']
         (2, 2)
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.__dict__ = self
@@ -72,7 +73,9 @@ def first(seq, key=bool, default=None, apply=lambda x: x):
         4
 
     """
-    return next((apply(x) for x in seq if key(x)), default() if callable(default) else default)
+    return next(
+        (apply(x) for x in seq if key(x)), default() if callable(default) else default
+    )
 
 
 def firstitem(map, key=lambda k, v: bool(k), default=None, apply=lambda k, v: (k, v)):

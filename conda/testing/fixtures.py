@@ -24,7 +24,7 @@ def suppress_resource_warning():
     warnings.filterwarnings("ignore", category=ResourceWarning)
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def tmpdir(tmpdir, request):
     tmpdir = TemporaryDirectory(dir=str(tmpdir))
     request.addfinalizer(tmpdir.cleanup)

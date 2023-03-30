@@ -9,12 +9,13 @@ import threading
 log = getLogger(__name__)
 
 INTERRUPT_SIGNALS = (
-    'SIGABRT',
-    'SIGINT',
-    'SIGTERM',
-    'SIGQUIT',
-    'SIGBREAK',
+    "SIGABRT",
+    "SIGINT",
+    "SIGTERM",
+    "SIGQUIT",
+    "SIGBREAK",
 )
+
 
 def get_signal_name(signum):
     """
@@ -24,9 +25,14 @@ def get_signal_name(signum):
         'SIGINT'
 
     """
-    return next((k for k, v in signal.__dict__.items()
-                 if v == signum and k.startswith('SIG') and not k.startswith('SIG_')),
-                None)
+    return next(
+        (
+            k
+            for k, v in signal.__dict__.items()
+            if v == signum and k.startswith("SIG") and not k.startswith("SIG_")
+        ),
+        None,
+    )
 
 
 @contextmanager
@@ -44,7 +50,7 @@ def signal_handler(handler):
                 _thread_local.previous_handlers.append((sig, prev_handler))
             except ValueError as e:  # pragma: no cover
                 # ValueError: signal only works in main thread
-                log.debug('%r', e)
+                log.debug("%r", e)
     try:
         yield
     finally:

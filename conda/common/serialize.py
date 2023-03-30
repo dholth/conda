@@ -14,7 +14,9 @@ except ImportError:
     try:
         import ruamel_yaml as yaml
     except ImportError:
-        raise ImportError("No yaml library available. To proceed, conda install ruamel.yaml")
+        raise ImportError(
+            "No yaml library available. To proceed, conda install ruamel.yaml"
+        )
 
 log = getLogger(__name__)
 
@@ -72,4 +74,6 @@ def json_load(string):
 
 
 def json_dump(object):
-    return json.dumps(object, indent=2, sort_keys=True, separators=(",", ": "), cls=EntityEncoder)
+    return json.dumps(
+        object, indent=2, sort_keys=True, separators=(",", ": "), cls=EntityEncoder
+    )

@@ -54,7 +54,9 @@ url_pat = re.compile(
 )
 
 
-def explicit(specs, prefix, verbose=False, force_extract=True, index_args=None, index=None):
+def explicit(
+    specs, prefix, verbose=False, force_extract=True, index_args=None, index=None
+):
     actions = defaultdict(list)
     actions["PREFIX"] = prefix
 
@@ -104,13 +106,17 @@ def explicit(specs, prefix, verbose=False, force_extract=True, index_args=None, 
     )
 
     # Assert that every spec has a PackageCacheRecord
-    specs_with_missing_pcrecs = [str(spec) for spec, pcrec in specs_pcrecs if pcrec is None]
+    specs_with_missing_pcrecs = [
+        str(spec) for spec, pcrec in specs_pcrecs if pcrec is None
+    ]
     if specs_with_missing_pcrecs:
         if len(specs_with_missing_pcrecs) == len(specs_pcrecs):
             raise AssertionError("No package cache records found")
         else:
             missing_precs_list = ", ".join(specs_with_missing_pcrecs)
-            raise AssertionError(f"Missing package cache records for: {missing_precs_list}")
+            raise AssertionError(
+                f"Missing package cache records for: {missing_precs_list}"
+            )
 
     precs_to_remove = []
     prefix_data = PrefixData(prefix)
@@ -140,7 +146,7 @@ def explicit(specs, prefix, verbose=False, force_extract=True, index_args=None, 
 
 
 def rel_path(prefix, path, windows_forward_slashes=True):
-    res = path[len(prefix) + 1:]
+    res = path[len(prefix) + 1 :]
     if on_win and windows_forward_slashes:
         res = res.replace("\\", "/")
     return res
@@ -252,10 +258,17 @@ def clone_env(prefix1, prefix2, verbose=True, quiet=False, index_args=None):
     if filter:
         if not quiet:
             fh = sys.stderr if context.json else sys.stdout
-            print("The following packages cannot be cloned out of the root environment:", file=fh)
+            print(
+                "The following packages cannot be cloned out of the root environment:",
+                file=fh,
+            )
             for prec in filter.values():
                 print(" - " + prec.dist_str(), file=fh)
-        drecs = {prec for prec in PrefixData(prefix1).iter_records() if prec["name"] not in filter}
+        drecs = {
+            prec
+            for prec in PrefixData(prefix1).iter_records()
+            if prec["name"] not in filter
+        }
     else:
         drecs = {prec for prec in PrefixData(prefix1).iter_records()}
 
@@ -331,6 +344,11 @@ def clone_env(prefix1, prefix2, verbose=True, quiet=False, index_args=None):
         shutil.copystat(src, dst)
 
     actions = explicit(
-        urls, prefix2, verbose=not quiet, index=index, force_extract=False, index_args=index_args
+        urls,
+        prefix2,
+        verbose=not quiet,
+        index=index,
+        force_extract=False,
+        index_args=index_args,
     )
     return actions, untracked_files

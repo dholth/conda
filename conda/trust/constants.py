@@ -25,7 +25,9 @@ INITIAL_TRUST_ROOT = {
     "signed": {
         "delegations": {
             "key_mgr": {
-                "pubkeys": ["f24c813d23a9b26be665eee5c54680c35321061b337f862385ed6d783b0bedb0"],
+                "pubkeys": [
+                    "f24c813d23a9b26be665eee5c54680c35321061b337f862385ed6d783b0bedb0"
+                ],
                 "threshold": 1,
             },
             "root": {

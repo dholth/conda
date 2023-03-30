@@ -22,7 +22,9 @@ def print_notices(channel_notices: Sequence[ChannelNotice]):
         if current_channel != channel_notice.channel_name:
             print()
             channel_header = "Channel"
-            channel_header += f' "{channel_notice.channel_name}" has the following notices:'
+            channel_header += (
+                f' "{channel_notice.channel_name}" has the following notices:'
+            )
             print(channel_header)
             current_channel = channel_notice.channel_name
         print_notice_message(channel_notice)

@@ -47,7 +47,7 @@ def find_or_none(key, search_maps, aliases=(), _map_index=0):
         return attr if attr is not None else find_or_none(key, search_maps[1:], aliases)
     except AttributeError:
         # not found in current map object, so go to next
-        return find_or_none(key, search_maps, aliases, _map_index+1)
+        return find_or_none(key, search_maps, aliases, _map_index + 1)
     except IndexError:
         # ran out of map objects to search
         return None
@@ -56,10 +56,12 @@ def find_or_none(key, search_maps, aliases=(), _map_index=0):
 def find_or_raise(key, search_maps, aliases=(), _map_index=0):
     try:
         attr = _get_attr(search_maps[_map_index], key, aliases)
-        return attr if attr is not None else find_or_raise(key, search_maps[1:], aliases)
+        return (
+            attr if attr is not None else find_or_raise(key, search_maps[1:], aliases)
+        )
     except AttributeError:
         # not found in current map object, so go to next
-        return find_or_raise(key, search_maps, aliases, _map_index+1)
+        return find_or_raise(key, search_maps, aliases, _map_index + 1)
     except IndexError:
         # ran out of map objects to search
         raise AttributeError()

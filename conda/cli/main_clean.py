@@ -7,7 +7,11 @@ from os.path import isdir, join
 from typing import Any, Dict, Iterable, List, Tuple
 import sys
 
-from ..base.constants import CONDA_PACKAGE_EXTENSIONS, CONDA_TEMP_EXTENSIONS, CONDA_LOGS_DIR
+from ..base.constants import (
+    CONDA_PACKAGE_EXTENSIONS,
+    CONDA_TEMP_EXTENSIONS,
+    CONDA_LOGS_DIR,
+)
 from ..base.context import context
 
 log = getLogger(__name__)
@@ -54,6 +58,7 @@ def _rm_rf(*parts: str, verbose: bool, verbosity: bool) -> None:
             print(f"WARNING: cannot remove, file permissions: {path}\n{e!r}")
         else:
             log.info("%r", e)
+
 
 def find_tarballs() -> Dict[str, Any]:
     warnings: List[Tuple[str, Exception]] = []
@@ -175,7 +180,9 @@ def find_index_cache() -> List[str]:
 def find_pkgs_dirs() -> List[str]:
     from ..core.package_cache_data import PackageCacheData
 
-    return [pc.pkgs_dir for pc in PackageCacheData.writable_caches() if isdir(pc.pkgs_dir)]
+    return [
+        pc.pkgs_dir for pc in PackageCacheData.writable_caches() if isdir(pc.pkgs_dir)
+    ]
 
 
 def find_tempfiles(paths: Iterable[str]) -> List[str]:
@@ -267,7 +274,9 @@ def _execute(args, parser):
     ):
         from ..exceptions import ArgumentError
 
-        raise ArgumentError("At least one removal target must be given. See 'conda clean --help'.")
+        raise ArgumentError(
+            "At least one removal target must be given. See 'conda clean --help'."
+        )
 
     if args.tarballs or args.all:
         json_result["tarballs"] = tars = find_tarballs()
@@ -295,6 +304,7 @@ def _execute(args, parser):
 
 def execute(args, parser):
     from .common import stdout_json
+
     json_result = _execute(args, parser)
     if context.json:
         stdout_json(json_result)

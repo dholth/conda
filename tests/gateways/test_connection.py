@@ -96,7 +96,9 @@ def test_s3_server(minio_s3_server):
         Config(signature_version="s3v4"),  # config
     )
     with pytest.raises(CondaExitZero):
-        with patch.object(boto3.session.Session.resource, "__defaults__", patched_defaults):
+        with patch.object(
+            boto3.session.Session.resource, "__defaults__", patched_defaults
+        ):
             # the .conda files in this repo are somehow corrupted
             with env_var("CONDA_USE_ONLY_TAR_BZ2", "True"):
                 with make_temp_env(
