@@ -41,9 +41,10 @@ install_requires = [
     "tqdm >=4",
 ]
 
+
 def package_files(*root_directories):
     return [
-        os.path.join('..', path, filename)
+        os.path.join("..", path, filename)
         for directory in root_directories
         for (path, directories, filenames) in os.walk(directory)
         for filename in filenames
@@ -72,15 +73,15 @@ setup(
         exclude=("tests", "tests.*", "build", "utils", ".tox")
     ),
     package_data={
-        '': package_files('conda/shell') + ['LICENSE'],
+        "": package_files("conda/shell") + ["LICENSE"],
     },
     cmdclass={
         "build_py": conda.auxlib.packaging.BuildPyCommand,
         "sdist": conda.auxlib.packaging.SDistCommand,
     },
     entry_points={
-        'console_scripts': [
-            'conda=conda.cli.main_pip:main',
+        "console_scripts": [
+            "conda=conda.cli.main_pip:main",
         ],
     },
     install_requires=install_requires,

@@ -17,4 +17,4 @@ def test_ChannelPriority():
     assert ChannelPriority("strict") == ChannelPriority.STRICT
     assert ChannelPriority["STRICT"] == ChannelPriority.STRICT
     assert ChannelPriority(False) == ChannelPriority.DISABLED
-    assert ChannelPriority('false') == ChannelPriority.DISABLED
+    assert ChannelPriority("false") == ChannelPriority.DISABLED

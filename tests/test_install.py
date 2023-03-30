@@ -24,11 +24,10 @@ patch = mock.patch if mock else None
 
 
 def generate_random_path():
-    return '/some/path/to/file%s' % random.randint(100, 200)
+    return "/some/path/to/file%s" % random.randint(100, 200)
 
 
 class TestBinaryReplace(unittest.TestCase):
-
     @pytest.mark.xfail(on_win, reason="binary replacement on windows skipped", strict=True)
     def test_simple(self):
         for encoding in ("utf-8", "utf-16-le", "utf-16-be", "utf-32-le", "utf-32-be"):
@@ -83,40 +82,50 @@ class TestBinaryReplace(unittest.TestCase):
         chdir(tmp_dir)
         original_prefix = "C:\\BogusPrefix\\python.exe"
         try:
-            url = 'https://s3.amazonaws.com/conda-dev/pyzzerw.pyz'
-            download(url, 'pyzzerw.pyz')
-            url = 'https://files.pythonhosted.org/packages/source/c/conda/conda-4.1.6.tar.gz'
-            download(url, 'conda-4.1.6.tar.gz')
-            subprocess.check_call([sys.executable, 'pyzzerw.pyz',
-                                   # output file
-                                   '-o', 'conda.exe',
-                                   # entry point
-                                   '-m', 'conda.cli.main:main',
-                                   # initial shebang
-                                   '-s', '#! ' + original_prefix,
-                                   # launcher executable to use (32-bit text should be compatible)
-                                   '-l', 't32',
-                                   # source archive to turn into executable
-                                   'conda-4.1.6.tar.gz',
-                                   ],
-                                  cwd=tmp_dir)
+            url = "https://s3.amazonaws.com/conda-dev/pyzzerw.pyz"
+            download(url, "pyzzerw.pyz")
+            url = "https://files.pythonhosted.org/packages/source/c/conda/conda-4.1.6.tar.gz"
+            download(url, "conda-4.1.6.tar.gz")
+            subprocess.check_call(
+                [
+                    sys.executable,
+                    "pyzzerw.pyz",
+                    # output file
+                    "-o",
+                    "conda.exe",
+                    # entry point
+                    "-m",
+                    "conda.cli.main:main",
+                    # initial shebang
+                    "-s",
+                    "#! " + original_prefix,
+                    # launcher executable to use (32-bit text should be compatible)
+                    "-l",
+                    "t32",
+                    # source archive to turn into executable
+                    "conda-4.1.6.tar.gz",
+                ],
+                cwd=tmp_dir,
+            )
             # this is the actual test: change the embedded prefix and make sure that the exe runs.
-            data = open('conda.exe', 'rb').read()
+            data = open("conda.exe", "rb").read()
             fixed_data = binary_replace(data, original_prefix, sys.executable)
-            with open("conda.fixed.exe", 'wb') as f:
+            with open("conda.fixed.exe", "wb") as f:
                 f.write(fixed_data)
             # without a valid shebang in the exe, this should fail
             with pytest.raises(subprocess.CalledProcessError):
-                subprocess.check_call(['conda.exe', '-h'])
+                subprocess.check_call(["conda.exe", "-h"])
 
-            process = subprocess.Popen(['conda.fixed.exe', '-h'],
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
+            process = subprocess.Popen(
+                ["conda.fixed.exe", "-h"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
             output, error = process.communicate()
-            output = output.decode('utf-8')
-            error = error.decode('utf-8')
-            assert ("conda is a tool for managing and deploying applications, "
-                    "environments and packages.") in output
+            output = output.decode("utf-8")
+            error = error.decode("utf-8")
+            assert (
+                "conda is a tool for managing and deploying applications, "
+                "environments and packages."
+            ) in output
         except:
             raise
         finally:
@@ -124,23 +133,20 @@ class TestBinaryReplace(unittest.TestCase):
 
 
 class FileTests(unittest.TestCase):
-
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp()
-        self.tmpfname = join(self.tmpdir, 'testfile')
+        self.tmpfname = join(self.tmpdir, "testfile")
 
     def tearDown(self):
         shutil.rmtree(self.tmpdir)
 
     def test_default_text(self):
-        with open(self.tmpfname, 'w') as fo:
-            fo.write('#!/opt/anaconda1anaconda2anaconda3/bin/python\n'
-                     'echo "Hello"\n')
-        update_prefix(self.tmpfname, '/usr/local')
+        with open(self.tmpfname, "w") as fo:
+            fo.write("#!/opt/anaconda1anaconda2anaconda3/bin/python\n" 'echo "Hello"\n')
+        update_prefix(self.tmpfname, "/usr/local")
         with open(self.tmpfname) as fi:
             data = fi.read()
-            self.assertEqual(data, '#!/usr/local/bin/python\n'
-                                   'echo "Hello"\n')
+            self.assertEqual(data, "#!/usr/local/bin/python\n" 'echo "Hello"\n')
 
     @pytest.mark.skipif(on_win, reason="test is invalid on windows")
     def test_long_default_text(self):
@@ -150,21 +156,18 @@ class FileTests(unittest.TestCase):
         update_prefix(self.tmpfname, new_prefix)
         with open(self.tmpfname) as fi:
             data = fi.read()
-            self.assertEqual(data, '#!/usr/bin/env python -O\n'
-                                   'echo "Hello"\n')
+            self.assertEqual(data, "#!/usr/bin/env python -O\n" 'echo "Hello"\n')
 
     @pytest.mark.skipif(on_win, reason="no binary replacement done on win")
     def test_binary(self):
-        with open(self.tmpfname, 'wb') as fo:
-            fo.write(b'\x7fELF.../some-placeholder/lib/libfoo.so\0')
-        update_prefix(self.tmpfname, '/usr/local',
-                      placeholder='/some-placeholder', mode=FileMode.binary)
-        with open(self.tmpfname, 'rb') as fi:
+        with open(self.tmpfname, "wb") as fo:
+            fo.write(b"\x7fELF.../some-placeholder/lib/libfoo.so\0")
+        update_prefix(
+            self.tmpfname, "/usr/local", placeholder="/some-placeholder", mode=FileMode.binary
+        )
+        with open(self.tmpfname, "rb") as fi:
             data = fi.read()
-            self.assertEqual(
-                data,
-                b'\x7fELF.../usr/local/lib/libfoo.so\0\0\0\0\0\0\0\0'
-            )
+            self.assertEqual(data, b"\x7fELF.../usr/local/lib/libfoo.so\0\0\0\0\0\0\0\0")
 
     def test_trash_outside_prefix(self):
         tmp_dir = tempfile.mkdtemp()
@@ -501,27 +504,28 @@ class FileTests(unittest.TestCase):
 
 
 def _make_lines_file(path):
-    with open(path, 'w') as fh:
+    with open(path, "w") as fh:
         fh.write("line 1\n")
         fh.write("line 2\n")
         fh.write("# line 3\n")
         fh.write("line 4\n")
 
+
 def test_yield_lines(tmpdir):
     tempfile = join(str(tmpdir), "testfile")
     _make_lines_file(tempfile)
     lines = list(yield_lines(tempfile))
-    assert lines == ['line 1', 'line 2', 'line 4']
+    assert lines == ["line 1", "line 2", "line 4"]
 
 
 def test_read_no_link(tmpdir):
     tempdir = str(tmpdir)
-    no_link = join(tempdir, 'no_link')
-    no_softlink = join(tempdir, 'no_softlink')
+    no_link = join(tempdir, "no_link")
+    no_softlink = join(tempdir, "no_softlink")
     _make_lines_file(no_link)
     s1 = read_no_link(tempdir)
-    assert s1 == {'line 1', 'line 2', 'line 4'}
+    assert s1 == {"line 1", "line 2", "line 4"}
 
     _make_lines_file(no_softlink)
     s2 = read_no_link(tempdir)
-    assert s2 == {'line 1', 'line 2', 'line 4'}
+    assert s2 == {"line 1", "line 2", "line 4"}

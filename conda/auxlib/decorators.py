@@ -127,7 +127,7 @@ def memoizemethod(method):
         # then the instance method will use the class's result cache, causing
         # its results to be globally stored rather than on a per instance
         # basis.
-        if '_memoized_results' not in self.__dict__:
+        if "_memoized_results" not in self.__dict__:
             self._memoized_results = {}
         memoized_results = self._memoized_results
 
@@ -138,7 +138,7 @@ def memoizemethod(method):
             try:
                 result = method(self, *args, **kwargs)
             except KeyError as e:
-                if '__wrapped__' in str(e):
+                if "__wrapped__" in str(e):
                     result = None  # is this the right thing to do?  happened during py3 conversion
                 else:
                     raise
@@ -218,14 +218,14 @@ def clear_memoized_methods(obj, *method_names):
     >>> f.foo()
     2
     """
-    for key in list(getattr(obj, '_memoized_results', {}).keys()):
+    for key in list(getattr(obj, "_memoized_results", {}).keys()):
         # key[0] is the method name
         if key[0] in method_names:
             del obj._memoized_results[key]
 
     property_dict = obj._cache_
     for prop in method_names:
-        inner_attname = '__%s' % prop
+        inner_attname = "__%s" % prop
         if inner_attname in property_dict:
             del property_dict[inner_attname]
 
@@ -257,10 +257,10 @@ def memoizedproperty(func):
     >>> foo1.foo
     2
     """
-    inner_attname = '__%s' % func.__name__
+    inner_attname = "__%s" % func.__name__
 
     def new_fget(self):
-        if not hasattr(self, '_cache_'):
+        if not hasattr(self, "_cache_"):
             self._cache_ = {}
         cache = self._cache_
         if inner_attname not in cache:
@@ -334,6 +334,7 @@ class classproperty:  # pylint: disable=C0103
 
     def setter(self, setter):
         return self.__class__(self.__get, setter)
+
 
 # memoize & clear:
 #     class method

@@ -259,10 +259,20 @@ from .type_coercion import maybecall
 log = getLogger(__name__)
 
 __all__ = [
-    "Entity", "ImmutableEntity", "Field",
-    "BooleanField", "BoolField", "IntegerField", "IntField",
-    "NumberField", "StringField", "DateField",
-    "EnumField", "ListField", "MapField", "ComposableField",
+    "Entity",
+    "ImmutableEntity",
+    "Field",
+    "BooleanField",
+    "BoolField",
+    "IntegerField",
+    "IntField",
+    "NumberField",
+    "StringField",
+    "DateField",
+    "EnumField",
+    "ListField",
+    "MapField",
+    "ComposableField",
 ]
 
 KEY_OVERRIDES_MAP = "__key_overrides__"
@@ -370,8 +380,17 @@ class Field:
     #   on __prepare__.  Strategy lifted from http://stackoverflow.com/a/4460034/2127762
     _order_helper = 0
 
-    def __init__(self, default=NULL, required=True, validation=None,
-                 in_dump=True, default_in_dump=True, nullable=False, immutable=False, aliases=()):
+    def __init__(
+        self,
+        default=NULL,
+        required=True,
+        validation=None,
+        in_dump=True,
+        default_in_dump=True,
+        nullable=False,
+        immutable=False,
+        aliases=(),
+    ):
         self._required = required
         self._validation = validation
         self._in_dump = in_dump
@@ -393,8 +412,10 @@ class Field:
         try:
             return self._name
         except AttributeError:
-            log.error("The name attribute has not been set for this field. "
-                      "Call set_name at class creation time.")
+            log.error(
+                "The name attribute has not been set for this field. "
+                "Call set_name at class creation time."
+            )
             raise
 
     def set_name(self, name):
@@ -470,7 +491,7 @@ class Field:
         elif val is None and self.nullable:
             return val
         else:
-            raise ValidationError(getattr(self, 'name', 'undefined name'), val)
+            raise ValidationError(getattr(self, "name", "undefined name"), val)
 
     @property
     def required(self):
@@ -547,9 +568,18 @@ class DateField(Field):
 
 
 class EnumField(Field):
-
-    def __init__(self, enum_class, default=NULL, required=True, validation=None,
-                 in_dump=True, default_in_dump=True, nullable=False, immutable=False, aliases=()):
+    def __init__(
+        self,
+        enum_class,
+        default=NULL,
+        required=True,
+        validation=None,
+        in_dump=True,
+        default_in_dump=True,
+        nullable=False,
+        immutable=False,
+        aliases=(),
+    ):
         if not issubclass(enum_class, Enum):
             raise ValidationError(None, msg="enum_class must be an instance of Enum")
         self._type = enum_class
@@ -578,8 +608,18 @@ class EnumField(Field):
 class ListField(Field):
     _type = tuple
 
-    def __init__(self, element_type, default=NULL, required=True, validation=None,
-                 in_dump=True, default_in_dump=True, nullable=False, immutable=False, aliases=()):
+    def __init__(
+        self,
+        element_type,
+        default=NULL,
+        required=True,
+        validation=None,
+        in_dump=True,
+        default_in_dump=True,
+        nullable=False,
+        immutable=False,
+        aliases=(),
+    ):
         self._element_type = element_type
         super().__init__(
             default, required, validation, in_dump, default_in_dump, nullable, immutable, aliases
@@ -616,8 +656,9 @@ class ListField(Field):
         val = super().validate(instance, val)
         if val:
             et = self._element_type
-            self._type(Raise(ValidationError(self.name, el, et)) for el in val
-                       if not isinstance(el, et))
+            self._type(
+                Raise(ValidationError(self.name, el, et)) for el in val if not isinstance(el, et)
+            )
         return val
 
 
@@ -661,9 +702,18 @@ class MapField(Field):
 
 
 class ComposableField(Field):
-
-    def __init__(self, field_class, default=NULL, required=True, validation=None,
-                 in_dump=True, default_in_dump=True, nullable=False, immutable=False, aliases=()):
+    def __init__(
+        self,
+        field_class,
+        default=NULL,
+        required=True,
+        validation=None,
+        in_dump=True,
+        default_in_dump=True,
+        nullable=False,
+        immutable=False,
+        aliases=(),
+    ):
         self._type = field_class
         super().__init__(
             default, required, validation, in_dump, default_in_dump, nullable, immutable, aliases
@@ -678,8 +728,8 @@ class ComposableField(Field):
             # assuming val is a dict now
             try:
                 # if there is a key named 'self', have to rename it
-                if hasattr(val, 'pop'):
-                    val['slf'] = val.pop('self')
+                if hasattr(val, "pop"):
+                    val["slf"] = val.pop("self")
             except KeyError:
                 pass  # no key of 'self', so no worries
             if isinstance(val, self._type):
@@ -696,7 +746,6 @@ class ComposableField(Field):
 
 
 class EntityType(type):
-
     @staticmethod
     def __get_entity_subclasses(bases):
         try:
@@ -715,9 +764,11 @@ class EntityType(type):
         )
         entity_subclasses = EntityType.__get_entity_subclasses(bases)
         if entity_subclasses:
-            keys_to_override = [key for key in non_field_keys
-                                if any(isinstance(base.__dict__.get(key), Field)
-                                       for base in entity_subclasses)]
+            keys_to_override = [
+                key
+                for key in non_field_keys
+                if any(isinstance(base.__dict__.get(key), Field) for base in entity_subclasses)
+            ]
             dct[KEY_OVERRIDES_MAP] = {key: dct.pop(key) for key in keys_to_override}
         else:
             dct[KEY_OVERRIDES_MAP] = {}
@@ -738,7 +789,7 @@ class EntityType(type):
             fields.update(sorted(clz_fields, key=_field_sort_key))
 
         cls.__fields__ = frozendict(fields)
-        if hasattr(cls, '__register__'):
+        if hasattr(cls, "__register__"):
             cls.__register__()
 
     def __call__(cls, *args, **kwargs):
@@ -781,8 +832,9 @@ class Entity(metaclass=EntityType):
     @classmethod
     def from_objects(cls, *objects, **override_fields):
         init_vars = {}
-        search_maps = tuple(AttrDict(o) if isinstance(o, dict) else o
-                            for o in ((override_fields,) + objects))
+        search_maps = tuple(
+            AttrDict(o) if isinstance(o, dict) else o for o in ((override_fields,) + objects)
+        )
         for key, field in cls.__fields__.items():
             try:
                 init_vars[key] = find_or_raise(key, search_maps, field._aliases)
@@ -817,7 +869,7 @@ class Entity(metaclass=EntityType):
             # TODO: re-enable once aliases are implemented
             # if key.startswith('_'):
             #     return False
-            if '__' in key:
+            if "__" in key:
                 return False
             try:
                 getattr(self, key)
@@ -845,15 +897,17 @@ class Entity(metaclass=EntityType):
     def json(self, indent=None, separators=None, **kwargs):
         return json_dumps(self, indent=indent, separators=separators, cls=DumpEncoder, **kwargs)
 
-    def pretty_json(self, indent=2, separators=(',', ': '), **kwargs):
+    def pretty_json(self, indent=2, separators=(",", ": "), **kwargs):
         return self.json(indent=indent, separators=separators, **kwargs)
 
     def dump(self):
-        return odict((field.name, field.dump(self, self.__class__, value))
-                     for field, value in ((field, getattr(self, field.name, NULL))
-                                          for field in self.__dump_fields())
-                     if value is not NULL and not (value is field.default
-                                                   and not field.default_in_dump))
+        return odict(
+            (field.name, field.dump(self, self.__class__, value))
+            for field, value in (
+                (field, getattr(self, field.name, NULL)) for field in self.__dump_fields()
+            )
+            if value is not NULL and not (value is field.default and not field.default_in_dump)
+        )
 
     @classmethod
     def __dump_fields(cls):
@@ -867,8 +921,10 @@ class Entity(metaclass=EntityType):
         if self.__class__ != other.__class__:
             return False
         rando_default = 19274656290  # need an arbitrary but definite value if field does not exist
-        return all(getattr(self, field, rando_default) == getattr(other, field, rando_default)
-                   for field in self.__fields__)
+        return all(
+            getattr(self, field, rando_default) == getattr(other, field, rando_default)
+            for field in self.__fields__
+        )
 
     def __hash__(self):
         return sum(hash(getattr(self, field, None)) for field in self.__fields__)
@@ -879,7 +935,6 @@ class Entity(metaclass=EntityType):
 
 
 class ImmutableEntity(Entity):
-
     def __setattr__(self, attribute, value):
         if self._initd:
             raise AttributeError(
@@ -894,7 +949,6 @@ class ImmutableEntity(Entity):
 
 
 class DictSafeMixin:
-
     def __getitem__(self, item):
         return getattr(self, item)
 
@@ -952,13 +1006,13 @@ class DictSafeMixin:
 class EntityEncoder(JSONEncoder):
     # json.dumps(obj, cls=SetEncoder)
     def default(self, obj):
-        if hasattr(obj, 'dump'):
+        if hasattr(obj, "dump"):
             return obj.dump()
-        elif hasattr(obj, '__json__'):
+        elif hasattr(obj, "__json__"):
             return obj.__json__()
-        elif hasattr(obj, 'to_json'):
+        elif hasattr(obj, "to_json"):
             return obj.to_json()
-        elif hasattr(obj, 'as_json'):
+        elif hasattr(obj, "as_json"):
             return obj.as_json()
         elif isinstance(obj, Enum):
             return obj.value

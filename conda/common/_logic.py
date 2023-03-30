@@ -15,6 +15,7 @@ FALSE = -TRUE
 
 class _ClauseList:
     """Storage for the CNF clauses, represented as a list of tuples of ints."""
+
     def __init__(self):
         self._clause_list = []
         # Methods append and extend are directly bound for performance reasons,
@@ -51,7 +52,7 @@ class _ClauseList:
         """
         Return clauses as a flat int array, each clause being terminated by 0.
         """
-        clause_array = array('i')
+        clause_array = array("i")
         for c in self._clause_list:
             clause_array.extend(c)
             clause_array.append(0)
@@ -63,8 +64,9 @@ class _ClauseArray:
     Storage for the CNF clauses, represented as a flat int array.
     Each clause is terminated by int(0).
     """
+
     def __init__(self):
-        self._clause_array = array('i')
+        self._clause_array = array("i")
         # Methods append and extend are directly bound for performance reasons,
         # to avoid call overhead and lookups.
         self._array_append = self._clause_array.append
@@ -101,7 +103,7 @@ class _ClauseArray:
         Removes clauses that were added after the state has been saved.
         """
         len_clause_array = saved_state
-        self._clause_array[len_clause_array:] = array('i')
+        self._clause_array[len_clause_array:] = array("i")
 
     def as_list(self):
         """Return clauses as a list of tuples of ints."""
@@ -342,7 +344,18 @@ class Clauses:
             # expressions and tuple additions in self.assign.
             x = self.new_var()
             if polarity in (True, None):
-                self.add_clauses([(-x, f,), (-x, g,)])
+                self.add_clauses(
+                    [
+                        (
+                            -x,
+                            f,
+                        ),
+                        (
+                            -x,
+                            g,
+                        ),
+                    ]
+                )
             if polarity in (False, None):
                 self.add_clauses([(x, -f, -g)])
             return x
@@ -368,7 +381,18 @@ class Clauses:
             if polarity in (True, None):
                 self.add_clauses([(-x, f, g)])
             if polarity in (False, None):
-                self.add_clauses([(x, -f,), (x, -g,)])
+                self.add_clauses(
+                    [
+                        (
+                            x,
+                            -f,
+                        ),
+                        (
+                            x,
+                            -g,
+                        ),
+                    ]
+                )
             return x
         pval = [(f, g)] if polarity in (True, None) else []
         nval = [(-f,), (-g,)] if polarity in (False, None) else []
@@ -522,7 +546,7 @@ class Clauses:
         #           ELSE l      <= S         <= u
         # we use memoization to prune common subexpressions
         total = sum(c for c in coeffs[:nterms])
-        target = (nterms-1, 0, total)
+        target = (nterms - 1, 0, total)
         call_stack = [target]
         ret = {}
         call_stack_append = call_stack.append
@@ -571,7 +595,7 @@ class Clauses:
         nterms = len(coeffs)
         if nterms and coeffs[-1] > hi:
             nprune = sum(c > hi for c in coeffs)
-            log.trace('Eliminating %d/%d terms for bound violation' % (nprune, nterms))
+            log.trace("Eliminating %d/%d terms for bound violation" % (nprune, nterms))
             nterms -= nprune
         else:
             nprune = 0
@@ -611,6 +635,7 @@ class Clauses:
             return []
         saved_state = self._sat_solver.save_state()
         if additional:
+
             def preproc(eqs):
                 def preproc_(cc):
                     for c in cc:
@@ -619,6 +644,7 @@ class Clauses:
                         yield c
                         if c == TRUE:
                             break
+
                 for cc in eqs:
                     cc = tuple(preproc_(cc))
                     if not cc:
@@ -626,6 +652,7 @@ class Clauses:
                         break
                     if cc[-1] != TRUE:
                         yield cc
+
             additional = list(preproc(additional))
             if additional:
                 if not additional[-1]:
@@ -644,13 +671,13 @@ class Clauses:
         largest active coefficient value, then we minimize the sum.
         """
         if bestsol is None or len(bestsol) < self.m:
-            log.debug('Clauses added, recomputing solution')
+            log.debug("Clauses added, recomputing solution")
             bestsol = self.sat()
         if bestsol is None or self.unsat:
-            log.debug('Constraints are unsatisfiable')
+            log.debug("Constraints are unsatisfiable")
             return bestsol, sum(abs(c) for c in coeffs) + 1 if coeffs else 1
         if not coeffs:
-            log.debug('Empty objective, trivial solution')
+            log.debug("Empty objective, trivial solution")
             return bestsol, 0
 
         lits, coeffs, offset = self.LB_Preprocess(lits, coeffs)
@@ -664,12 +691,12 @@ class Clauses:
 
         lo = 0
         try0 = 0
-        for peak in ((True, False) if maxval > 1 else (False,)):
+        for peak in (True, False) if maxval > 1 else (False,):
             if peak:
-                log.trace('Beginning peak minimization')
+                log.trace("Beginning peak minimization")
                 objval = peak_val
             else:
-                log.trace('Beginning sum minimization')
+                log.trace("Beginning sum minimization")
                 objval = sum_val
 
             objective_dict = {a: c for c, a in zip(coeffs, lits)}
@@ -689,7 +716,7 @@ class Clauses:
             log.trace("Initial range (%d,%d)" % (lo, hi))
             while True:
                 if try0 is None:
-                    mid = (lo+hi) // 2
+                    mid = (lo + hi) // 2
                 else:
                     mid = try0
                 if peak:
@@ -702,8 +729,10 @@ class Clauses:
                     self.Require(self.LinearBound, lits, coeffs, lo, mid, False)
 
                 if log.isEnabledFor(DEBUG):
-                    log.trace('Bisection attempt: (%d,%d), (%d+%d) clauses' %
-                              (lo, mid, nz, self.get_clause_count() - nz))
+                    log.trace(
+                        "Bisection attempt: (%d,%d), (%d+%d) clauses"
+                        % (lo, mid, nz, self.get_clause_count() - nz)
+                    )
                 newsol = self.sat()
                 if newsol is None:
                     lo = mid + 1
@@ -731,7 +760,7 @@ class Clauses:
                 self.unsat = False
                 try0 = None
 
-            log.debug('Final %s objective: %d' % ('peak' if peak else 'sum', bestval))
+            log.debug("Final %s objective: %d" % ("peak" if peak else "sum", bestval))
             if bestval == 0:
                 break
             elif peak:
@@ -744,6 +773,6 @@ class Clauses:
                 try0 = sum_val(bestsol, objective_dict)
                 lo = bestval
             else:
-                log.debug('New peak objective: %d' % peak_val(bestsol, objective_dict))
+                log.debug("New peak objective: %d" % peak_val(bestsol, objective_dict))
 
         return bestsol, bestval

@@ -16,7 +16,6 @@ log = getLogger(__name__)
 
 
 class LocalFSAdapter(BaseAdapter):
-
     def send(self, request, stream=None, timeout=None, verify=None, cert=None, proxies=None):
         pathname = url_to_path(request.url)
 
@@ -41,11 +40,13 @@ class LocalFSAdapter(BaseAdapter):
         else:
             modified = formatdate(stats.st_mtime, usegmt=True)
             content_type = guess_type(pathname)[0] or "text/plain"
-            resp.headers = CaseInsensitiveDict({
-                "Content-Type": content_type,
-                "Content-Length": stats.st_size,
-                "Last-Modified": modified,
-            })
+            resp.headers = CaseInsensitiveDict(
+                {
+                    "Content-Type": content_type,
+                    "Content-Length": stats.st_size,
+                    "Last-Modified": modified,
+                }
+            )
 
             resp.raw = open(pathname, "rb")
             resp.close = resp.raw.close

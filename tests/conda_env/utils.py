@@ -14,6 +14,7 @@ from conda_env.cli.main_export import configure_parser as export_configure_parse
 
 from conda.utils import massage_arguments
 
+
 class Commands:
     CREATE = "create"
     UPDATE = "update"
@@ -41,7 +42,7 @@ def run_command(command, env_name, *arguments):
     args = [command, "-n", env_name, "-f"] + arguments
 
     p = ArgumentParser()
-    sub_parsers = p.add_subparsers(metavar='command', dest='cmd')
+    sub_parsers = p.add_subparsers(metavar="command", dest="cmd")
     parser_config[command](sub_parsers)
     args = p.parse_args(args)
 

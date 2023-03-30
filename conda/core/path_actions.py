@@ -18,18 +18,36 @@ from ..auxlib.ish import dals
 from ..base.constants import CONDA_TEMP_EXTENSION
 from ..base.context import context
 from ..common.compat import on_win
-from ..common.path import (get_bin_directory_short_path, get_leaf_directories,
-                           get_python_noarch_target_path, get_python_short_path,
-                           parse_entry_point_def,
-                           pyc_path, url_to_path, win_path_ok)
+from ..common.path import (
+    get_bin_directory_short_path,
+    get_leaf_directories,
+    get_python_noarch_target_path,
+    get_python_short_path,
+    parse_entry_point_def,
+    pyc_path,
+    url_to_path,
+    win_path_ok,
+)
 from ..common.url import has_platform, path_to_url
-from ..exceptions import (CondaUpgradeError, CondaVerificationError, NotWritableError,
-                          PaddingError, SafetyError)
+from ..exceptions import (
+    CondaUpgradeError,
+    CondaVerificationError,
+    NotWritableError,
+    PaddingError,
+    SafetyError,
+)
 from ..gateways.connection.download import download
-from ..gateways.disk.create import (compile_multiple_pyc, copy,
-                                    create_hard_link_or_copy, create_link,
-                                    create_python_entry_point, extract_tarball,
-                                    make_menu, mkdir_p, write_as_json_to_file)
+from ..gateways.disk.create import (
+    compile_multiple_pyc,
+    copy,
+    create_hard_link_or_copy,
+    create_link,
+    create_python_entry_point,
+    extract_tarball,
+    make_menu,
+    mkdir_p,
+    write_as_json_to_file,
+)
 from ..gateways.disk.delete import rm_rf
 from ..gateways.disk.permissions import make_writable
 from ..gateways.disk.read import compute_sum, islink, lexists, read_index_json
@@ -38,8 +56,14 @@ from ..history import History
 from ..models.channel import Channel
 from ..models.enums import LinkType, NoarchType, PathType
 from ..models.match_spec import MatchSpec
-from ..models.records import (Link, PackageCacheRecord, PackageRecord, PathDataV1, PathsData,
-                              PrefixRecord)
+from ..models.records import (
+    Link,
+    PackageCacheRecord,
+    PackageRecord,
+    PathDataV1,
+    PathsData,
+    PrefixRecord,
+)
 
 try:
     FileNotFoundError
@@ -49,10 +73,11 @@ except NameError:
 log = getLogger(__name__)
 
 REPR_IGNORE_KWARGS = (
-    'transaction_context',
-    'package_info',
-    'hold_path',
+    "transaction_context",
+    "package_info",
+    "hold_path",
 )
+
 
 class PathAction(metaclass=ABCMeta):
 
@@ -190,24 +215,24 @@ class CreateInPrefixPathAction(PrefixPathAction, metaclass=ABCMeta):
 
 
 class LinkPathAction(CreateInPrefixPathAction):
-
     @classmethod
-    def create_file_link_actions(cls, transaction_context, package_info, target_prefix,
-                                 requested_link_type):
+    def create_file_link_actions(
+        cls, transaction_context, package_info, target_prefix, requested_link_type
+    ):
         def get_prefix_replace(source_path_data):
             if source_path_data.path_type == PathType.softlink:
                 link_type = LinkType.copy
-                prefix_placehoder, file_mode = '', None
+                prefix_placehoder, file_mode = "", None
             elif source_path_data.prefix_placeholder:
                 link_type = LinkType.copy
                 prefix_placehoder = source_path_data.prefix_placeholder
                 file_mode = source_path_data.file_mode
             elif source_path_data.no_link:
                 link_type = LinkType.copy
-                prefix_placehoder, file_mode = '', None
+                prefix_placehoder, file_mode = "", None
             else:
                 link_type = requested_link_type
-                prefix_placehoder, file_mode = '', None
+                prefix_placehoder, file_mode = "", None
 
             return link_type, prefix_placehoder, file_mode
 
@@ -220,51 +245,84 @@ class LinkPathAction(CreateInPrefixPathAction):
                 if noarch is not None:
                     noarch = noarch.type
             if noarch == NoarchType.python:
-                sp_dir = transaction_context['target_site_packages_short_path']
+                sp_dir = transaction_context["target_site_packages_short_path"]
                 if sp_dir is None:
-                    raise CondaError("Unable to determine python site-packages "
-                                     "dir in target_prefix!\nPlease make sure "
-                                     "python is installed in %s" % target_prefix)
+                    raise CondaError(
+                        "Unable to determine python site-packages "
+                        "dir in target_prefix!\nPlease make sure "
+                        "python is installed in %s" % target_prefix
+                    )
                 target_short_path = get_python_noarch_target_path(source_path_data.path, sp_dir)
             elif noarch is None or noarch == NoarchType.generic:
                 target_short_path = source_path_data.path
             else:
-                raise CondaUpgradeError(dals("""
+                raise CondaUpgradeError(
+                    dals(
+                        """
                 The current version of conda is too old to install this package.
-                Please update conda."""))
+                Please update conda."""
+                    )
+                )
 
             link_type, placeholder, fmode = get_prefix_replace(source_path_data)
 
             if placeholder:
-                return PrefixReplaceLinkAction(transaction_context, package_info,
-                                               package_info.extracted_package_dir,
-                                               source_path_data.path,
-                                               target_prefix, target_short_path,
-                                               requested_link_type,
-                                               placeholder, fmode, source_path_data)
+                return PrefixReplaceLinkAction(
+                    transaction_context,
+                    package_info,
+                    package_info.extracted_package_dir,
+                    source_path_data.path,
+                    target_prefix,
+                    target_short_path,
+                    requested_link_type,
+                    placeholder,
+                    fmode,
+                    source_path_data,
+                )
             else:
-                return LinkPathAction(transaction_context, package_info,
-                                      package_info.extracted_package_dir, source_path_data.path,
-                                      target_prefix, target_short_path,
-                                      link_type, source_path_data)
+                return LinkPathAction(
+                    transaction_context,
+                    package_info,
+                    package_info.extracted_package_dir,
+                    source_path_data.path,
+                    target_prefix,
+                    target_short_path,
+                    link_type,
+                    source_path_data,
+                )
+
         return tuple(make_file_link_action(spi) for spi in package_info.paths_data.paths)
 
     @classmethod
-    def create_directory_actions(cls, transaction_context, package_info, target_prefix,
-                                 requested_link_type, file_link_actions):
+    def create_directory_actions(
+        cls,
+        transaction_context,
+        package_info,
+        target_prefix,
+        requested_link_type,
+        file_link_actions,
+    ):
         leaf_directories = get_leaf_directories(axn.target_short_path for axn in file_link_actions)
         return tuple(
-            cls(transaction_context, package_info, None, None,
-                target_prefix, directory_short_path, LinkType.directory, None)
+            cls(
+                transaction_context,
+                package_info,
+                None,
+                None,
+                target_prefix,
+                directory_short_path,
+                LinkType.directory,
+                None,
+            )
             for directory_short_path in leaf_directories
         )
 
     @classmethod
-    def create_python_entry_point_windows_exe_action(cls, transaction_context, package_info,
-                                                     target_prefix, requested_link_type,
-                                                     entry_point_def):
+    def create_python_entry_point_windows_exe_action(
+        cls, transaction_context, package_info, target_prefix, requested_link_type, entry_point_def
+    ):
         source_directory = context.conda_prefix
-        source_short_path = 'Scripts/conda.exe'
+        source_short_path = "Scripts/conda.exe"
         command, _, _ = parse_entry_point_def(entry_point_def)
         target_short_path = "Scripts/%s.exe" % command
         source_path_data = PathDataV1(
@@ -418,8 +476,9 @@ class LinkPathAction(CreateInPrefixPathAction):
 
     def execute(self):
         log.trace("linking %s => %s", self.source_full_path, self.target_full_path)
-        create_link(self.source_full_path, self.target_full_path, self.link_type,
-                    force=context.force)
+        create_link(
+            self.source_full_path, self.target_full_path, self.link_type, force=context.force
+        )
         self._execute_successful = True
 
     def reverse(self):
@@ -480,13 +539,17 @@ class PrefixReplaceLinkAction(LinkPathAction):
 
         try:
             log.trace("rewriting prefixes in %s", self.target_full_path)
-            update_prefix(self.intermediate_path,
-                          context.target_prefix_override or self.target_prefix,
-                          self.prefix_placeholder,
-                          self.file_mode, subdir=self.package_info.repodata_record.subdir)
+            update_prefix(
+                self.intermediate_path,
+                context.target_prefix_override or self.target_prefix,
+                self.prefix_placeholder,
+                self.file_mode,
+                subdir=self.package_info.repodata_record.subdir,
+            )
         except _PaddingError:
-            raise PaddingError(self.target_full_path, self.prefix_placeholder,
-                               len(self.prefix_placeholder))
+            raise PaddingError(
+                self.target_full_path, self.prefix_placeholder, len(self.prefix_placeholder)
+            )
 
         sha256_in_prefix = compute_sum(self.intermediate_path, "sha256")
 
@@ -510,7 +573,6 @@ class PrefixReplaceLinkAction(LinkPathAction):
 
 
 class MakeMenuAction(CreateInPrefixPathAction):
-
     @classmethod
     def create_actions(cls, transaction_context, package_info, target_prefix, requested_link_type):
         if on_win and context.shortcuts:
@@ -602,7 +664,12 @@ class CompileMultiPycAction(MultiPathAction):
         self.target_short_paths = target_short_paths
         self.prefix_path_data = None
         self.prefix_paths_data = [
-            PathDataV1(_path=p, path_type=PathType.pyc_file,) for p in self.target_short_paths]
+            PathDataV1(
+                _path=p,
+                path_type=PathType.pyc_file,
+            )
+            for p in self.target_short_paths
+        ]
         self._execute_successful = False
 
     @property
@@ -612,6 +679,7 @@ class CompileMultiPycAction(MultiPathAction):
                 return None
             else:
                 return join(prefix, win_path_ok(short_path))
+
         return (join_or_none(self.target_prefix, p) for p in self.target_short_paths)
 
     @property
@@ -621,6 +689,7 @@ class CompileMultiPycAction(MultiPathAction):
                 return None
             else:
                 return join(prefix, win_path_ok(short_path))
+
         return (join_or_none(self.target_prefix, p) for p in self.source_short_paths)
 
     def verify(self):
@@ -635,18 +704,23 @@ class CompileMultiPycAction(MultiPathAction):
         #   installed into a python 2 environment, but no code paths actually importing it
         # technically then, this file should be removed from the manifest in conda-meta, but
         #   at the time of this writing that's not currently happening
-        log.trace("compiling %s", ' '.join(self.target_full_paths))
-        target_python_version = self.transaction_context['target_python_version']
+        log.trace("compiling %s", " ".join(self.target_full_paths))
+        target_python_version = self.transaction_context["target_python_version"]
         python_short_path = get_python_short_path(target_python_version)
         python_full_path = join(self.target_prefix, win_path_ok(python_short_path))
-        compile_multiple_pyc(python_full_path, self.source_full_paths, self.target_full_paths,
-                             self.target_prefix, self.transaction_context['target_python_version'])
+        compile_multiple_pyc(
+            python_full_path,
+            self.source_full_paths,
+            self.target_full_paths,
+            self.target_prefix,
+            self.transaction_context["target_python_version"],
+        )
         self._execute_successful = True
 
     def reverse(self):
         # this removes all pyc files even if they were not created
         if self._execute_successful:
-            log.trace("reversing pyc creation %s", ' '.join(self.target_full_paths))
+            log.trace("reversing pyc creation %s", " ".join(self.target_full_paths))
             for target_full_path in self.target_full_paths:
                 rm_rf(target_full_path)
 
@@ -734,14 +808,14 @@ class CreatePythonEntryPointAction(CreateInPrefixPathAction):
         if on_win:
             python_full_path = None
         else:
-            target_python_version = self.transaction_context['target_python_version']
+            target_python_version = self.transaction_context["target_python_version"]
             python_short_path = get_python_short_path(target_python_version)
             python_full_path = join(
                 context.target_prefix_override or self.target_prefix,
-                win_path_ok(python_short_path))
+                win_path_ok(python_short_path),
+            )
 
-        create_python_entry_point(self.target_full_path, python_full_path,
-                                  self.module, self.func)
+        create_python_entry_point(self.target_full_path, python_full_path, self.module, self.func)
         self._execute_successful = True
 
     def reverse(self):
@@ -974,10 +1048,15 @@ class CreatePrefixRecordAction(CreateInPrefixPathAction):
             if isinstance(link_path_action, CompileMultiPycAction):
                 return link_path_action.target_short_paths
             else:
-                return ((link_path_action.target_short_path, )
-                        if isinstance(link_path_action, CreateInPrefixPathAction) and
-                        (not hasattr(link_path_action, 'link_type') or
-                         link_path_action.link_type != LinkType.directory) else ())
+                return (
+                    (link_path_action.target_short_path,)
+                    if isinstance(link_path_action, CreateInPrefixPathAction)
+                    and (
+                        not hasattr(link_path_action, "link_type")
+                        or link_path_action.link_type != LinkType.directory
+                    )
+                    else ()
+                )
 
         def paths_from_action(link_path_action):
             if isinstance(link_path_action, CompileMultiPycAction):
@@ -1077,7 +1156,6 @@ class UpdateHistoryAction(CreateInPrefixPathAction):
 
 
 class RegisterEnvironmentLocationAction(PathAction):
-
     def __init__(self, transaction_context, target_prefix):
         self.transaction_context = transaction_context
         self.target_prefix = target_prefix
@@ -1090,8 +1168,11 @@ class RegisterEnvironmentLocationAction(PathAction):
             touch(user_environments_txt_file, mkdir=True, sudo_safe=True)
             self._verified = True
         except NotWritableError:
-            log.warn("Unable to create environments file. Path not writable.\n"
-                     "  environment location: %s\n", user_environments_txt_file)
+            log.warn(
+                "Unable to create environments file. Path not writable.\n"
+                "  environment location: %s\n",
+                user_environments_txt_file,
+            )
 
     def execute(self):
         log.trace("registering environment in catalog %s", self.target_prefix)
@@ -1158,7 +1239,6 @@ class UnlinkPathAction(RemoveFromPrefixPathAction):
 
 
 class RemoveMenuAction(RemoveFromPrefixPathAction):
-
     @classmethod
     def create_actions(cls, transaction_context, linked_package_data, target_prefix):
         if on_win:
@@ -1234,10 +1314,11 @@ class UnregisterEnvironmentLocationAction(PathAction):
 #  Fetch / Extract Actions
 # ######################################################
 
-class CacheUrlAction(PathAction):
 
-    def __init__(self, url, target_pkgs_dir, target_package_basename,
-                 sha256=None, size=None, md5=None):
+class CacheUrlAction(PathAction):
+    def __init__(
+        self, url, target_pkgs_dir, target_package_basename, sha256=None, size=None, md5=None
+    ):
         self.url = url
         self.target_pkgs_dir = target_pkgs_dir
         self.target_package_basename = target_package_basename
@@ -1247,13 +1328,14 @@ class CacheUrlAction(PathAction):
         self.hold_path = self.target_full_path + CONDA_TEMP_EXTENSION
 
     def verify(self):
-        assert '::' not in self.url
+        assert "::" not in self.url
         self._verified = True
 
     def execute(self, progress_update_callback=None):
         # I hate inline imports, but I guess it's ok since we're importing from the conda.core
         # The alternative is passing the PackageCache class to CacheUrlAction __init__
         from .package_cache_data import PackageCacheData
+
         target_package_cache = PackageCacheData(self.target_pkgs_dir)
 
         log.trace("caching url %s => %s", self.url, self.target_full_path)
@@ -1262,13 +1344,13 @@ class CacheUrlAction(PathAction):
             rm_rf(self.hold_path)
 
         if lexists(self.target_full_path):
-            if self.url.startswith('file:/') and self.url == path_to_url(self.target_full_path):
+            if self.url.startswith("file:/") and self.url == path_to_url(self.target_full_path):
                 # the source and destination are the same file, so we're done
                 return
             else:
                 backoff_rename(self.target_full_path, self.hold_path, force=True)
 
-        if self.url.startswith('file:/'):
+        if self.url.startswith("file:/"):
             source_path = url_to_path(self.url)
             self._execute_local(source_path, target_package_cache, progress_update_callback)
         else:
@@ -1276,6 +1358,7 @@ class CacheUrlAction(PathAction):
 
     def _execute_local(self, source_path, target_package_cache, progress_update_callback=None):
         from .package_cache_data import PackageCacheData
+
         if dirname(source_path) in context.pkgs_dirs:
             # if url points to another package cache, link to the writable cache
             create_hard_link_or_copy(source_path, self.target_full_path)
@@ -1300,7 +1383,7 @@ class CacheUrlAction(PathAction):
             #   directory that might exist in this cache because we are going to overwrite it
             #   anyway when we extract the tarball.
             source_md5sum = compute_sum(source_path, "md5")
-            exclude_caches = self.target_pkgs_dir,
+            exclude_caches = (self.target_pkgs_dir,)
             pc_entry = PackageCacheData.tarball_file_in_cache(
                 source_path, source_md5sum, exclude_caches=exclude_caches
             )
@@ -1313,8 +1396,9 @@ class CacheUrlAction(PathAction):
                 origin_url = None
 
             # copy the tarball to the writable cache
-            create_link(source_path, self.target_full_path, link_type=LinkType.copy,
-                        force=context.force)
+            create_link(
+                source_path, self.target_full_path, link_type=LinkType.copy, force=context.force
+            )
 
             if origin_url and has_platform(origin_url, context.known_subdirs):
                 target_package_cache._urls_data.add_url(origin_url)
@@ -1333,7 +1417,7 @@ class CacheUrlAction(PathAction):
             self.url,
             self.target_full_path,
             progress_update_callback=progress_update_callback,
-            **kwargs
+            **kwargs,
         )
         target_package_cache._urls_data.add_url(self.url)
 
@@ -1417,12 +1501,18 @@ class ExtractPackageAction(PathAction):
                 assert size == self.size, (size, self.size)
             md5 = self.md5 or compute_sum(self.source_full_path, "md5")
             repodata_record = PackageRecord.from_objects(
-                raw_index_json, url=url, channel=channel, fn=fn, sha256=sha256, size=size, md5=md5,
+                raw_index_json,
+                url=url,
+                channel=channel,
+                fn=fn,
+                sha256=sha256,
+                size=size,
+                md5=md5,
             )
         else:
             repodata_record = PackageRecord.from_objects(self.record_or_spec, raw_index_json)
 
-        repodata_record_path = join(self.target_full_path, 'info', 'repodata_record.json')
+        repodata_record_path = join(self.target_full_path, "info", "repodata_record.json")
         write_as_json_to_file(repodata_record_path, repodata_record)
 
         target_package_cache = PackageCacheData(self.target_pkgs_dir)
@@ -1448,5 +1538,7 @@ class ExtractPackageAction(PathAction):
         return join(self.target_pkgs_dir, self.target_extracted_dirname)
 
     def __str__(self):
-        return ('ExtractPackageAction<source_full_path=%r, target_full_path=%r>'
-                % (self.source_full_path, self.target_full_path))
+        return "ExtractPackageAction<source_full_path={!r}, target_full_path={!r}>".format(
+            self.source_full_path,
+            self.target_full_path,
+        )

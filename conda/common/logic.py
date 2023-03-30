@@ -84,7 +84,7 @@ class Clauses:
 
     def name_var(self, m, name):
         self._check_literal(m)
-        nname = '!' + name
+        nname = "!" + name
         self.names[name] = m
         self.names[nname] = -m
         if m not in {TRUE, FALSE} and m not in self.indices:
@@ -203,7 +203,10 @@ class Clauses:
         coefficients = list(equation.values())
         return self._eval(
             self._clauses.LinearBound,
-            (named_literals,), (coefficients, lo, hi, preprocess), polarity, name,
+            (named_literals,),
+            (coefficients, lo, hi, preprocess),
+            polarity,
+            name,
         )
 
     def sat(self, additional=None, includeIf=False, names=False, limit=0):
@@ -277,8 +280,17 @@ def minimal_unsatisfiable_subset(clauses, sat, explicit_specs):
         # we succeeded, so we'll add the spec to our future constraints
         working_set = set(explicit_specs)
 
-    for spec in (set(clauses) - working_set):
-        if sat(working_set | {spec, }, True) is None:
+    for spec in set(clauses) - working_set:
+        if (
+            sat(
+                working_set
+                | {
+                    spec,
+                },
+                True,
+            )
+            is None
+        ):
             found_conflicts.add(spec)
         else:
             # we succeeded, so we'll add the spec to our future constraints

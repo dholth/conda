@@ -140,7 +140,7 @@ def explicit(specs, prefix, verbose=False, force_extract=True, index_args=None, 
 
 
 def rel_path(prefix, path, windows_forward_slashes=True):
-    res = path[len(prefix) + 1:]
+    res = path[len(prefix) + 1 :]
     if on_win and windows_forward_slashes:
         res = res.replace("\\", "/")
     return res

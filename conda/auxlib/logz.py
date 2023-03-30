@@ -13,11 +13,13 @@ NullHandler = NullHandler
 DEBUG_FORMATTER = Formatter(
     "[%(levelname)s] [%(asctime)s.%(msecs)03d] %(process)d %(name)s:%(funcName)s(%(lineno)d):\n"
     "%(message)s\n",
-    "%Y-%m-%d %H:%M:%S")
+    "%Y-%m-%d %H:%M:%S",
+)
 
 INFO_FORMATTER = Formatter(
     "[%(levelname)s] [%(asctime)s.%(msecs)03d] %(process)d %(name)s(%(lineno)d): %(message)s\n",
-    "%Y-%m-%d %H:%M:%S")
+    "%Y-%m-%d %H:%M:%S",
+)
 
 
 def set_root_level(level=INFO):
@@ -25,10 +27,10 @@ def set_root_level(level=INFO):
 
 
 def attach_stderr(level=INFO):
-    has_stderr_handler = any(handler.name == 'stderr' for handler in root_log.handlers)
+    has_stderr_handler = any(handler.name == "stderr" for handler in root_log.handlers)
     if not has_stderr_handler:
         handler = StreamHandler(stderr)
-        handler.name = 'stderr'
+        handler.name = "stderr"
         if level is not None:
             handler.setLevel(level)
         handler.setFormatter(DEBUG_FORMATTER if level == DEBUG else INFO_FORMATTER)
@@ -40,7 +42,7 @@ def attach_stderr(level=INFO):
 
 def detach_stderr():
     for handler in root_log.handlers:
-        if handler.name == 'stderr':
+        if handler.name == "stderr":
             root_log.removeHandler(handler)
             return True
     return False
@@ -52,7 +54,7 @@ def initialize_logging(level=INFO):
 
 class DumpEncoder(JSONEncoder):
     def default(self, obj):
-        if hasattr(obj, 'dump'):
+        if hasattr(obj, "dump"):
             return obj.dump()
         # Let the base class default method raise the TypeError
         return super().default(obj)
@@ -73,17 +75,21 @@ def fullname(obj):
 
 
 request_header_sort_dict = {
-    'Host': '\x00\x00',
-    'User-Agent': '\x00\x01',
+    "Host": "\x00\x00",
+    "User-Agent": "\x00\x01",
 }
+
+
 def request_header_sort_key(item):
     return request_header_sort_dict.get(item[0], item[0].lower())
 
 
 response_header_sort_dict = {
-    'Content-Length': '\x7e\x7e\x61',
-    'Connection': '\x7e\x7e\x62',
+    "Content-Length": "\x7e\x7e\x61",
+    "Connection": "\x7e\x7e\x62",
 }
+
+
 def response_header_sort_key(item):
     return response_header_sort_dict.get(item[0], item[0].lower())
 
@@ -99,7 +105,7 @@ def stringify(obj, content_max_len=0):
             )
         )
         builder += [f"{key}: {value}" for key, value in bottle_object.headers.items()]
-        builder.append('')
+        builder.append("")
         body = bottle_object.body.read().strip()
         if body:
             builder.append(body)
@@ -135,37 +141,38 @@ def stringify(obj, content_max_len=0):
         elapsed = str(response_object.elapsed).split(":", 1)[-1]
         builder.append(f"< Elapsed: {elapsed}")
         if content_max_len:
-            builder.append('')
-            content_type = response_object.headers.get('Content-Type')
-            if content_type == 'application/json':
+            builder.append("")
+            content_type = response_object.headers.get("Content-Type")
+            if content_type == "application/json":
                 resp = response_object.json()
                 resp = dict(islice(resp.items(), content_max_len))
                 content = dumps(resp, indent=2)
                 content = content[:content_max_len] if len(content) > content_max_len else content
                 builder.append(content)
-                builder.append('')
-            elif content_type is not None and (content_type.startswith('text/')
-                                               or content_type == 'application/xml'):
+                builder.append("")
+            elif content_type is not None and (
+                content_type.startswith("text/") or content_type == "application/xml"
+            ):
                 text = response_object.text
                 content = text[:content_max_len] if len(text) > content_max_len else text
                 builder.append(content)
 
     try:
         name = fullname(obj)
-        builder = ['']  # start with new line
-        if name.startswith('bottle.'):
+        builder = [""]  # start with new line
+        if name.startswith("bottle."):
             bottle_builder(builder, obj)
-        elif name.endswith('requests.models.PreparedRequest'):
+        elif name.endswith("requests.models.PreparedRequest"):
             requests_models_PreparedRequest_builder(builder, obj)
-        elif name.endswith('requests.models.Response'):
-            if getattr(obj, 'request'):
+        elif name.endswith("requests.models.Response"):
+            if getattr(obj, "request"):
                 requests_models_PreparedRequest_builder(builder, obj.request)
             else:
                 log.info("request is 'None' for Response object with url %s", obj.url)
             requests_models_Response_builder(builder, obj)
         else:
             return None
-        builder.append('')  # end with new line
+        builder.append("")  # end with new line
         return "\n".join(builder)
     except Exception as e:
         log.exception(e)

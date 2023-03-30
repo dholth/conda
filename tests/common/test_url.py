@@ -43,7 +43,10 @@ def test_maybe_add_auth():
 def test_add_username_and_pass_to_url():
     url = "http://www.conda.io:80/some/path.html?query1=1&query2=2"
     new_url = add_username_and_password(url, "usr", "some*/weird pass")
-    assert new_url == "http://usr:some%2A%2Fweird%20pass@www.conda.io:80/some/path.html?query1=1&query2=2"
+    assert (
+        new_url
+        == "http://usr:some%2A%2Fweird%20pass@www.conda.io:80/some/path.html?query1=1&query2=2"
+    )
 
 
 def test_is_url():
@@ -59,17 +62,17 @@ def test_is_url():
 
 
 def test_is_ipv6_address():
-    assert is_ipv6_address('::1') is True
-    assert is_ipv6_address('2001:db8:85a3::370:7334') is True
-    assert is_ipv6_address('1234:'*7+'1234') is True
-    assert is_ipv6_address('192.168.10.10') is False
-    assert is_ipv6_address('1234:' * 8 + '1234') is False
+    assert is_ipv6_address("::1") is True
+    assert is_ipv6_address("2001:db8:85a3::370:7334") is True
+    assert is_ipv6_address("1234:" * 7 + "1234") is True
+    assert is_ipv6_address("192.168.10.10") is False
+    assert is_ipv6_address("1234:" * 8 + "1234") is False
 
 
 def test_is_ip_address():
-    assert is_ip_address('192.168.10.10') is True
-    assert is_ip_address('::1') is True
-    assert is_ip_address('www.google.com') is False
+    assert is_ip_address("192.168.10.10") is True
+    assert is_ip_address("::1") is True
+    assert is_ip_address("www.google.com") is False
 
 
 class UrlTest(NamedTuple):

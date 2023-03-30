@@ -23,6 +23,7 @@ class CondaPluginManager(pluggy.PluginManager):
     The conda plugin manager to implement behavior additional to
     pluggy's default plugin manager.
     """
+
     #: Cached version of the :meth:`~conda.plugins.manager.CondaPluginManager.get_solver_backend`
     #: method.
     get_cached_solver_backend = None
@@ -47,16 +48,12 @@ class CondaPluginManager(pluggy.PluginManager):
             try:
                 plugin_name = self.register(plugin)
             except ValueError as err:
-                raise PluginError(
-                    f"Error while loading conda plugins from {plugins}: {err}"
-                )
+                raise PluginError(f"Error while loading conda plugins from {plugins}: {err}")
             else:
                 plugin_names.append(plugin_name)
         return plugin_names
 
-    def load_entrypoints(
-        self, group: str, name: str | None = None
-    ) -> int:
+    def load_entrypoints(self, group: str, name: str | None = None) -> int:
         """Load modules from querying the specified setuptools ``group``.
         :param str group: Entry point group to load plugins.
         :param str name: If given, loads only plugins with the given ``name``.
@@ -138,8 +135,7 @@ class CondaPluginManager(pluggy.PluginManager):
         # Build a mapping between a lower cased backend name and
         # solver backend class provided by the installed plugins.
         solvers_mapping = {
-            solver.name.lower(): solver.backend
-            for solver in self.get_hook_results("solvers")
+            solver.name.lower(): solver.backend for solver in self.get_hook_results("solvers")
         }
 
         # Look up the solver mapping an fail loudly if it can't

@@ -55,6 +55,7 @@ def _rm_rf(*parts: str, verbose: bool, verbosity: bool) -> None:
         else:
             log.info("%r", e)
 
+
 def find_tarballs() -> Dict[str, Any]:
     warnings: List[Tuple[str, Exception]] = []
     pkg_sizes: Dict[str, Dict[str, int]] = {}
@@ -295,6 +296,7 @@ def _execute(args, parser):
 
 def execute(args, parser):
     from .common import stdout_json
+
     json_result = _execute(args, parser)
     if context.json:
         stdout_json(json_result)

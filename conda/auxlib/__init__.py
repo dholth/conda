@@ -26,24 +26,30 @@ and replace auxlib. As a first step of this process we moved conda._vendor.auxli
 
 # don't mess up logging for library users
 from logging import getLogger, Handler
+
+
 class NullHandler(Handler):  # NOQA
     def emit(self, record):
         pass
 
 
-getLogger('auxlib').addHandler(NullHandler())
+getLogger("auxlib").addHandler(NullHandler())
 
 __all__ = [
-    "__version__", "__author__",
-    "__email__", "__license__", "__copyright__",
-    "__summary__", "__url__",
+    "__version__",
+    "__author__",
+    "__email__",
+    "__license__",
+    "__copyright__",
+    "__summary__",
+    "__url__",
 ]
 
 __version__ = "0.0.43"
 
-__author__ = 'Kale Franz'
-__email__ = 'kale@franz.io'
-__url__ = 'https://github.com/kalefranz/auxlib'
+__author__ = "Kale Franz"
+__email__ = "kale@franz.io"
+__url__ = "https://github.com/kalefranz/auxlib"
 __license__ = "ISC"
 __copyright__ = "(c) 2015 Kale Franz. All rights reserved."
 __summary__ = """auxiliary library to the python standard library"""
@@ -59,6 +65,7 @@ class _Null:
         >>> _Null().__nonzero__()
         False
     """
+
     def __nonzero__(self):
         return self.__bool__()
 
@@ -75,10 +82,10 @@ class _Null:
         return hash(_Null)
 
     def __str__(self):
-        return 'Null'
+        return "Null"
 
     def __json__(self):
-        return 'null'
+        return "null"
 
     to_json = __json__
 

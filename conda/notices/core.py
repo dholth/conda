@@ -95,6 +95,7 @@ def notices(func):
     Args:
         func: Function to be decorated
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         if is_channel_notices_enabled(context):

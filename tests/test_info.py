@@ -28,9 +28,9 @@ def test_info():
     ):
         assert_in(name, conda_info_out)
 
-    conda_info_e_out, conda_info_e_err, rc = run_command(Commands.INFO, '-e')
-    assert_in('base', conda_info_e_out)
-    assert_equals(conda_info_e_err, '')
+    conda_info_e_out, conda_info_e_err, rc = run_command(Commands.INFO, "-e")
+    assert_in("base", conda_info_e_out)
+    assert_equals(conda_info_e_err, "")
 
     conda_info_s_out, conda_info_s_err, rc = run_command(Commands.INFO, "-s")
     assert_equals(conda_info_s_err, "")
@@ -44,8 +44,8 @@ def test_info():
     ):
         assert_in(name, conda_info_s_out)
 
-    conda_info_all_out, conda_info_all_err, rc = run_command(Commands.INFO, '--all')
-    assert_equals(conda_info_all_err, '')
+    conda_info_all_out, conda_info_all_err, rc = run_command(Commands.INFO, "--all")
+    assert_equals(conda_info_all_err, "")
     assert_in(conda_info_out, conda_info_all_out)
     assert_in(conda_info_e_out, conda_info_all_out)
     assert_in(conda_info_s_out, conda_info_all_out)
@@ -77,23 +77,36 @@ def test_info_package_json():
 
 
 @pytest.mark.skipif(True, reason="only temporary")
-@patch('conda.cli.conda_argparse.do_call', side_effect=KeyError('blarg'))
+@patch("conda.cli.conda_argparse.do_call", side_effect=KeyError("blarg"))
 def test_get_info_dict(cli_install_mock):
     # This test patches conda.cli.install.install to throw an artificial exception.
     # What we're looking for here is the proper behavior for how error reports work with
     # collecting `conda info` in this situation.
-    with env_var('CONDA_REPORT_ERRORS', 'false', stack_callback=conda_tests_ctxt_mgmt_def_pol):
-        out, err, _ = run_command(Commands.CREATE, "-n", "blargblargblarg", "blarg", "--dry-run", "--json",
-                                  use_exception_handler=True)
+    with env_var("CONDA_REPORT_ERRORS", "false", stack_callback=conda_tests_ctxt_mgmt_def_pol):
+        out, err, _ = run_command(
+            Commands.CREATE,
+            "-n",
+            "blargblargblarg",
+            "blarg",
+            "--dry-run",
+            "--json",
+            use_exception_handler=True,
+        )
         assert cli_install_mock.call_count == 1
         sys.stdout.write(out)
         sys.stderr.write(err)
         assert not err
         json_obj = json.loads(out)
-        assert json_obj['conda_info']['conda_version']
+        assert json_obj["conda_info"]["conda_version"]
 
-        out, err, _ = run_command(Commands.CREATE, "-n", "blargblargblarg", "blarg", "--dry-run",
-                                  use_exception_handler=True)
+        out, err, _ = run_command(
+            Commands.CREATE,
+            "-n",
+            "blargblargblarg",
+            "blarg",
+            "--dry-run",
+            use_exception_handler=True,
+        )
         sys.stderr.write(out)
         sys.stderr.write(err)
         assert "conda info could not be constructed" not in err

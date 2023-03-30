@@ -21,7 +21,6 @@ log = getLogger(__name__)
 
 
 class LinkSymlinkUnlinkIslinkReadlinkTests(TestCase):
-
     def setUp(self):
         tempdirdir = gettempdir()
         dirname = str(uuid.uuid4())[:8]
@@ -34,8 +33,8 @@ class LinkSymlinkUnlinkIslinkReadlinkTests(TestCase):
         assert not lexists(self.test_dir)
 
     def test_hard_link(self):
-        path1_real_file = join(self.test_dir, 'path1_real_file')
-        path2_second_inode = join(self.test_dir, 'path2_second_inode')
+        path1_real_file = join(self.test_dir, "path1_real_file")
+        path2_second_inode = join(self.test_dir, "path2_second_inode")
         touch(path1_real_file)
         assert isfile(path1_real_file)
         assert not islink(path1_real_file)
@@ -56,15 +55,14 @@ class LinkSymlinkUnlinkIslinkReadlinkTests(TestCase):
         assert not lexists(path1_real_file)
 
     def test_soft_link(self):
-        path1_real_file = join(self.test_dir, 'path1_real_file')
-        path2_symlink = join(self.test_dir, 'path2_symlink')
+        path1_real_file = join(self.test_dir, "path1_real_file")
+        path2_symlink = join(self.test_dir, "path2_symlink")
         touch(path1_real_file)
         assert isfile(path1_real_file)
         assert not islink(path1_real_file)
 
         if not softlink_supported(path1_real_file, self.test_dir) and on_win:
             pytest.skip("softlink not supported")
-
 
         symlink(path1_real_file, path2_symlink)
         assert exists(path2_symlink)

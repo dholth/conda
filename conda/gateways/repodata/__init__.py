@@ -296,14 +296,18 @@ If your current network has https://www.anaconda.com blocked, please file
 a support request with your network engineering team.
 
 %s
-""" % maybe_unquote(repr(url))
+""" % maybe_unquote(
+                    repr(url)
+                )
 
             else:
                 help_message = """\
 An HTTP error occurred when trying to retrieve this URL.
 HTTP errors are often intermittent, and a simple retry will get you on your way.
 %s
-""" % maybe_unquote(repr(url))
+""" % maybe_unquote(
+                    repr(url)
+                )
 
         raise CondaHTTPError(
             help_message,

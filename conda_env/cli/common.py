@@ -9,7 +9,7 @@ from conda.cli import install as cli_install
 from conda.cli.common import stdout_json as _stdout_json, stdout_json_success
 from conda.gateways.connection.session import CONDA_SESSION_SCHEMES
 
-base_env_name = 'base'
+base_env_name = "base"
 
 
 @deprecated("23.3", "23.9", addendum="Use `conda.cli.common.stdout_json` instead.")
@@ -27,7 +27,9 @@ def find_prefix_name(name):
     if name == base_env_name:
         return context.root_prefix
     # always search cwd in addition to envs dirs (for relative path access)
-    for envs_dir in list(context.envs_dirs) + [os.getcwd(), ]:
+    for envs_dir in list(context.envs_dirs) + [
+        os.getcwd(),
+    ]:
         prefix = join(envs_dir, name)
         if isdir(prefix):
             return prefix

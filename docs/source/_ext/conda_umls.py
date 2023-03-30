@@ -10,9 +10,7 @@ import sys
 from pylint.pyreverse.main import Run
 
 here = os.path.dirname(__file__)
-plantuml_jarfile_url = (
-    "https://sourceforge.net/projects/plantuml/files/plantuml.jar/download"
-)
+plantuml_jarfile_url = "https://sourceforge.net/projects/plantuml/files/plantuml.jar/download"
 
 
 # files and folders to ignore during generating the UML files
@@ -52,9 +50,7 @@ def post_process(files, output_path):
     Replace all items from the replacements list above in the given files.
     """
     for file in files:
-        with fileinput.input(
-            files=[os.path.join(output_path, file)], inplace=True
-        ) as open_file:
+        with fileinput.input(files=[os.path.join(output_path, file)], inplace=True) as open_file:
             for line in open_file:
                 for old, new in replacements:
                     line = line.replace(old, new)
@@ -109,9 +105,7 @@ def download_plantuml(app, config):
         if not os.path.isdir(parent):
             os.makedirs(parent, exist_ok=True)
         with requests.get(plantuml_jarfile_url, stream=True) as response:
-            sys.stdout.write(
-                f"Downloading PlantUML jar file to {config.plantuml_jarfile_path}..."
-            )
+            sys.stdout.write(f"Downloading PlantUML jar file to {config.plantuml_jarfile_path}...")
             sys.stdout.flush()
             response.raise_for_status()
             response.raw.decode_content = True

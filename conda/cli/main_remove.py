@@ -22,8 +22,9 @@ log = logging.getLogger(__name__)
 def execute(args, parser):
 
     if not (args.all or args.package_names):
-        raise CondaValueError('no package names supplied,\n'
-                              '       try "conda remove -h" for more details')
+        raise CondaValueError(
+            "no package names supplied,\n" '       try "conda remove -h" for more details'
+        )
 
     prefix = context.target_prefix
     check_non_admin()
@@ -50,13 +51,14 @@ def execute(args, parser):
 
     if args.all:
         if prefix == context.root_prefix:
-            raise CondaEnvironmentError('cannot remove root environment,\n'
-                                        '       add -n NAME or -p PREFIX option')
-        if not isfile(join(prefix, 'conda-meta', 'history')):
+            raise CondaEnvironmentError(
+                "cannot remove root environment,\n" "       add -n NAME or -p PREFIX option"
+            )
+        if not isfile(join(prefix, "conda-meta", "history")):
             raise DirectoryNotACondaEnvironmentError(prefix)
         print("\nRemove all packages in environment %s:\n" % prefix, file=sys.stderr)
 
-        if 'package_names' in args:
+        if "package_names" in args:
             stp = PrefixSetup(
                 target_prefix=prefix,
                 unlink_precs=tuple(PrefixData(prefix).iter_records()),

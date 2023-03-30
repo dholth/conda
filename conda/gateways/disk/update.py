@@ -23,7 +23,7 @@ from ...exceptions import NotWritableError
 
 log = getLogger(__name__)
 
-SHEBANG_REGEX = re.compile(br'^(#!((?:\\ |[^ \n\r])+)(.*))')
+SHEBANG_REGEX = re.compile(rb"^(#!((?:\\ |[^ \n\r])+)(.*))")
 
 
 class CancelOperation(Exception):
@@ -36,7 +36,7 @@ def update_file_in_place_as_binary(file_full_path, callback):
     # this method updates the file in-place, without releasing the file lock
     fh = None
     try:
-        fh = exp_backoff_fn(open, file_full_path, 'rb+')
+        fh = exp_backoff_fn(open, file_full_path, "rb+")
         log.trace("in-place update path locked for %s", file_full_path)
         data = fh.read()
         fh.seek(0)
@@ -60,25 +60,38 @@ def rename(source_path, destination_path, force=False):
         try:
             os.rename(source_path, destination_path)
         except OSError as e:
-            if (on_win and dirname(source_path) == dirname(destination_path)
-                    and os.path.isfile(source_path)):
+            if (
+                on_win
+                and dirname(source_path) == dirname(destination_path)
+                and os.path.isfile(source_path)
+            ):
                 condabin_dir = join(context.conda_prefix, "condabin")
-                rename_script = join(condabin_dir, 'rename_tmp.bat')
+                rename_script = join(condabin_dir, "rename_tmp.bat")
                 if exists(rename_script):
                     _dirname, _src_fn = split(source_path)
                     _dest_fn = basename(destination_path)
-                    p = Popen(['cmd.exe', '/C', rename_script, _dirname,
-                               _src_fn, _dest_fn], stdout=PIPE, stderr=PIPE)
+                    p = Popen(
+                        ["cmd.exe", "/C", rename_script, _dirname, _src_fn, _dest_fn],
+                        stdout=PIPE,
+                        stderr=PIPE,
+                    )
                     stdout, stderr = p.communicate()
                 else:
-                    log.debug("{} is missing.  Conda was not installed correctly or has been "
-                              "corrupted.  Please file an issue on the conda github repo."
-                              .format(rename_script))
+                    log.debug(
+                        "{} is missing.  Conda was not installed correctly or has been "
+                        "corrupted.  Please file an issue on the conda github repo.".format(
+                            rename_script
+                        )
+                    )
             elif e.errno in (EINVAL, EXDEV, EPERM):
                 # https://github.com/conda/conda/issues/6811
                 # https://github.com/conda/conda/issues/6711
-                log.trace("Could not rename %s => %s due to errno [%s]. Falling back"
-                          " to copy/unlink", source_path, destination_path, e.errno)
+                log.trace(
+                    "Could not rename %s => %s due to errno [%s]. Falling back" " to copy/unlink",
+                    source_path,
+                    destination_path,
+                    e.errno,
+                )
                 # https://github.com/moby/moby/issues/25409#issuecomment-238537855
                 # shutil.move() falls back to copy+unlink
                 move(source_path, destination_path)
@@ -140,7 +153,7 @@ def touch(path, mkdir=False, sudo_safe=False):
                     mkdir_p(dirpath)
             else:
                 assert isdir(dirname(path))
-            with open(path, 'a'):
+            with open(path, "a"):
                 pass
             # This chown call causes a false positive PermissionError to be
             # raised (similar to #7109) when called in an environment which

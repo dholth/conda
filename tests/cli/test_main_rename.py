@@ -196,6 +196,7 @@ def test_rename_with_force_with_errors(env_one, env_two):
     (_, _, exit_code), _ = list_envs()
     assert exit_code is None
 
+
 def test_rename_with_force_with_errors_prefix(env_prefix_one):
     """
     Runs a test using --force flag while mocking an exception.

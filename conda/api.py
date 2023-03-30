@@ -50,8 +50,14 @@ class Solver:
         solver_backend = context.plugin_manager.get_cached_solver_backend()
         self._internal = solver_backend(prefix, channels, subdirs, specs_to_add, specs_to_remove)
 
-    def solve_final_state(self, update_modifier=NULL, deps_modifier=NULL, prune=NULL,
-                          ignore_pinned=NULL, force_remove=NULL):
+    def solve_final_state(
+        self,
+        update_modifier=NULL,
+        deps_modifier=NULL,
+        prune=NULL,
+        ignore_pinned=NULL,
+        force_remove=NULL,
+    ):
         """
         **Beta** While in beta, expect both major and minor changes across minor releases.
 
@@ -84,11 +90,19 @@ class Solver:
                 the solved state of the environment.
 
         """
-        return self._internal.solve_final_state(update_modifier, deps_modifier, prune,
-                                                ignore_pinned, force_remove)
+        return self._internal.solve_final_state(
+            update_modifier, deps_modifier, prune, ignore_pinned, force_remove
+        )
 
-    def solve_for_diff(self, update_modifier=NULL, deps_modifier=NULL, prune=NULL,
-                       ignore_pinned=NULL, force_remove=NULL, force_reinstall=False):
+    def solve_for_diff(
+        self,
+        update_modifier=NULL,
+        deps_modifier=NULL,
+        prune=NULL,
+        ignore_pinned=NULL,
+        force_remove=NULL,
+        force_reinstall=False,
+    ):
         """
         **Beta** While in beta, expect both major and minor changes across minor releases.
 
@@ -118,11 +132,19 @@ class Solver:
                 dependency order from roots to leaves.
 
         """
-        return self._internal.solve_for_diff(update_modifier, deps_modifier, prune, ignore_pinned,
-                                             force_remove, force_reinstall)
+        return self._internal.solve_for_diff(
+            update_modifier, deps_modifier, prune, ignore_pinned, force_remove, force_reinstall
+        )
 
-    def solve_for_transaction(self, update_modifier=NULL, deps_modifier=NULL, prune=NULL,
-                              ignore_pinned=NULL, force_remove=NULL, force_reinstall=False):
+    def solve_for_transaction(
+        self,
+        update_modifier=NULL,
+        deps_modifier=NULL,
+        prune=NULL,
+        ignore_pinned=NULL,
+        force_remove=NULL,
+        force_reinstall=False,
+    ):
         """
         **Beta** While in beta, expect both major and minor changes across minor releases.
 
@@ -145,8 +167,9 @@ class Solver:
             UnlinkLinkTransaction:
 
         """
-        return self._internal.solve_for_transaction(update_modifier, deps_modifier, prune,
-                                                    ignore_pinned, force_remove, force_reinstall)
+        return self._internal.solve_for_transaction(
+            update_modifier, deps_modifier, prune, ignore_pinned, force_remove, force_reinstall
+        )
 
 
 class SubdirData:

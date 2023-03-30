@@ -615,7 +615,7 @@ class _Activator:
                 )
                 if path_list[last_idx + 1] == library_bin_dir:
                     last_idx += 1
-                del path_list[first_idx:last_idx + 1]
+                del path_list[first_idx : last_idx + 1]
         else:
             first_idx = 0
 
