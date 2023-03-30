@@ -39,7 +39,9 @@ def retrieve_notices(
         silent: Whether to use a spinner when fetching and caching notices.
     """
     channel_name_urls = get_channel_name_and_urls(get_channel_objs(context))
-    channel_notice_responses = fetch.get_notice_responses(channel_name_urls, silent=silent)
+    channel_notice_responses = fetch.get_notice_responses(
+        channel_name_urls, silent=silent
+    )
     channel_notices = flatten_notice_responses(channel_notice_responses)
     total_number_channel_notices = len(channel_notices)
 
@@ -52,10 +54,14 @@ def retrieve_notices(
     viewed_notices = None
     viewed_channel_notices = 0
     if not always_show_viewed:
-        viewed_notices = cache.get_viewed_channel_notice_ids(cache_file, channel_notices)
+        viewed_notices = cache.get_viewed_channel_notice_ids(
+            cache_file, channel_notices
+        )
         viewed_channel_notices = len(viewed_notices)
 
-    channel_notices = filter_notices(channel_notices, limit=limit, exclude=viewed_notices)
+    channel_notices = filter_notices(
+        channel_notices, limit=limit, exclude=viewed_notices
+    )
 
     return ChannelNoticeResultSet(
         channel_notices=channel_notices,
@@ -95,6 +101,7 @@ def notices(func):
     Args:
         func: Function to be decorated
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         if is_channel_notices_enabled(context):

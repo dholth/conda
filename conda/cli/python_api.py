@@ -72,10 +72,10 @@ def run_command(command, *arguments, **kwargs):
         >>> run_command(Commands.CREATE, ["-n", "newenv", "python=3", "flask"], search_path=())
     """
     initialize_std_loggers()
-    use_exception_handler = kwargs.pop('use_exception_handler', False)
-    configuration_search_path = kwargs.pop('search_path', SEARCH_PATH)
-    stdout = kwargs.pop('stdout', STRING)
-    stderr = kwargs.pop('stderr', STRING)
+    use_exception_handler = kwargs.pop("use_exception_handler", False)
+    configuration_search_path = kwargs.pop("search_path", SEARCH_PATH)
+    stdout = kwargs.pop("stdout", STRING)
+    stderr = kwargs.pop("stderr", STRING)
     p = generate_parser()
 
     if arguments and isinstance(arguments[0], list):
@@ -92,15 +92,18 @@ def run_command(command, *arguments, **kwargs):
     )
 
     from subprocess import list2cmdline
+
     log.debug("executing command >>>  conda %s", list2cmdline(arguments))
 
-    is_run = arguments[0] == 'run'
+    is_run = arguments[0] == "run"
     if is_run:
         cap_args = (None, None)
     else:
         cap_args = (stdout, stderr)
     try:
-        with argv(['python_api'] + encode_arguments(arguments)), captured(*cap_args) as c:
+        with argv(["python_api"] + encode_arguments(arguments)), captured(
+            *cap_args
+        ) as c:
             if use_exception_handler:
                 result = conda_exception_handler(do_call, args, p)
             else:
@@ -117,5 +120,7 @@ def run_command(command, *arguments, **kwargs):
         e.stdout, e.stderr = stdout, stderr
         raise e
     return_code = result or 0
-    log.debug("\n  stdout: %s\n  stderr: %s\n  return_code: %s", stdout, stderr, return_code)
+    log.debug(
+        "\n  stdout: %s\n  stderr: %s\n  return_code: %s", stdout, stderr, return_code
+    )
     return stdout, stderr, return_code

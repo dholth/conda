@@ -65,7 +65,9 @@ class _SignatureVerification:
 
         # ensure the trusted_root exists
         if self.trusted_root is None:
-            log.warn("could not find trusted_root data for metadata signature verification")
+            log.warn(
+                "could not find trusted_root data for metadata signature verification"
+            )
             return False
 
         # ensure the key_mgr exists
@@ -84,7 +86,9 @@ class _SignatureVerification:
         trusted = INITIAL_TRUST_ROOT
 
         # Load current trust root metadata from filesystem
-        for path in sorted(glob(join(context.av_data_dir, "[0-9]*.root.json")), reverse=True):
+        for path in sorted(
+            glob(join(context.av_data_dir, "[0-9]*.root.json")), reverse=True
+        ):
             try:
                 int(basename(path).split(".")[0])
             except ValueError:
@@ -96,7 +100,8 @@ class _SignatureVerification:
                 break
         else:
             log.debug(
-                f"No root metadata in {context.av_data_dir}. " "Using built-in root metadata."
+                f"No root metadata in {context.av_data_dir}. "
+                "Using built-in root metadata."
             )
 
         # Refresh trust root metadata
@@ -171,7 +176,9 @@ class _SignatureVerification:
     def session(self):
         return CondaSession()
 
-    def _fetch_channel_signing_data(self, signing_data_url, filename, etag=None, mod_stamp=None):
+    def _fetch_channel_signing_data(
+        self, signing_data_url, filename, etag=None, mod_stamp=None
+    ):
         if not context.ssl_verify:
             warnings.simplefilter("ignore", InsecureRequestWarning)
 
@@ -197,7 +204,10 @@ class _SignatureVerification:
                 headers=headers,
                 proxies=self.session.proxies,
                 auth=lambda r: r,
-                timeout=(context.remote_connect_timeout_secs, context.remote_read_timeout_secs),
+                timeout=(
+                    context.remote_connect_timeout_secs,
+                    context.remote_read_timeout_secs,
+                ),
             )
 
             resp.raise_for_status()
@@ -214,7 +224,9 @@ class _SignatureVerification:
             return resp.json()
         except json.decoder.JSONDecodeError as err:  # noqa
             # TODO: additional loading and error handling improvements?
-            raise ValueError(f"Invalid JSON returned from {signing_data_url}/{filename}")
+            raise ValueError(
+                f"Invalid JSON returned from {signing_data_url}/{filename}"
+            )
 
     def __call__(self, info, fn, signatures):
         if not self.enabled or fn not in signatures:

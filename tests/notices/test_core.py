@@ -99,7 +99,9 @@ def test__conda_user_story__only_see_once(
     dummy(dummy_args, None)
 
     captured = capsys.readouterr()
-    notices_decorator_assert_message_in_stdout(captured, messages=messages, dummy_mesg=dummy_mesg)
+    notices_decorator_assert_message_in_stdout(
+        captured, messages=messages, dummy_mesg=dummy_mesg
+    )
 
     dummy(dummy_args, None)
     captured = capsys.readouterr()

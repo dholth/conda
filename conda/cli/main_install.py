@@ -11,10 +11,13 @@ from ..notices import notices
 @notices
 def execute(args, parser):
     if context.force:
-        print("\n\n"
-              "WARNING: The --force flag will be removed in a future conda release.\n"
-              "         See 'conda install --help' for details about the --force-reinstall\n"
-              "         and --clobber flags.\n"
-              "\n", file=sys.stderr)
+        print(
+            "\n\n"
+            "WARNING: The --force flag will be removed in a future conda release.\n"
+            "         See 'conda install --help' for details about the --force-reinstall\n"
+            "         and --clobber flags.\n"
+            "\n",
+            file=sys.stderr,
+        )
 
-    install(args, parser, 'install')
+    install(args, parser, "install")

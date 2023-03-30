@@ -18,7 +18,9 @@ def execute(args, parser):
     # create run script
     script, command = wrap_subprocess_call(
         context.root_prefix,
-        validate_prefix(context.target_prefix or os.getenv("CONDA_PREFIX") or context.root_prefix),
+        validate_prefix(
+            context.target_prefix or os.getenv("CONDA_PREFIX") or context.root_prefix
+        ),
         args.dev,
         args.debug_wrapper_scripts,
         args.executable_call,
@@ -44,7 +46,9 @@ def execute(args, parser):
     # log error
     if response.rc != 0:
         log = getLogger(__name__)
-        log.error(f"`conda run {' '.join(args.executable_call)}` failed. (See above for error)")
+        log.error(
+            f"`conda run {' '.join(args.executable_call)}` failed. (See above for error)"
+        )
 
     # remove script
     if "CONDA_TEST_SAVE_TEMPS" not in os.environ:

@@ -12,7 +12,7 @@ from conda.models.version import normalized_version
 from ..env import from_yaml, Environment
 
 
-ENVIRONMENT_TYPE = 'env'
+ENVIRONMENT_TYPE = "env"
 
 
 class BinstarSpec:
@@ -23,6 +23,7 @@ class BinstarSpec:
     spec.msg # => Error messages
     :raises: EnvironmentFileNotDownloaded
     """
+
     msg = None
 
     def __init__(self, name=None):
@@ -36,8 +37,10 @@ class BinstarSpec:
         # TODO: log information about trying to find the package in binstar.org
         if self.valid_name():
             if not self.binstar:
-                self.msg = ("Anaconda Client is required to interact with anaconda.org or an "
-                            "Anaconda API. Please run `conda install anaconda-client -n base`.")
+                self.msg = (
+                    "Anaconda Client is required to interact with anaconda.org or an "
+                    "Anaconda API. Please run `conda install anaconda-client -n base`."
+                )
                 return False
 
             return self.package is not None and self.valid_package()
@@ -74,7 +77,9 @@ class BinstarSpec:
 
     @cached_property
     def file_data(self) -> list[dict[str, str]]:
-        return [data for data in self.package["files"] if data["type"] == ENVIRONMENT_TYPE]
+        return [
+            data for data in self.package["files"] if data["type"] == ENVIRONMENT_TYPE
+        ]
 
     @cached_property
     def environment(self) -> Environment:
@@ -83,7 +88,9 @@ class BinstarSpec:
             for d in self.file_data
         ]
         latest_version = max(versions, key=lambda x: x["normalized"])["original"]
-        file_data = [data for data in self.package["files"] if data["version"] == latest_version]
+        file_data = [
+            data for data in self.package["files"] if data["version"] == latest_version
+        ]
         req = self.binstar.download(
             self.username, self.packagename, latest_version, file_data[0]["basename"]
         )

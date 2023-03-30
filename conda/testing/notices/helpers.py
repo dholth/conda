@@ -80,7 +80,8 @@ def offset_cache_file_mtime(mtime_offset) -> None:
     """
     cache_file = get_notices_cache_file()
     os.utime(
-        cache_file, times=(cache_file.stat().st_atime, cache_file.stat().st_mtime - mtime_offset)
+        cache_file,
+        times=(cache_file.stat().st_atime, cache_file.stat().st_mtime - mtime_offset),
     )
 
 
@@ -97,7 +98,10 @@ class DummyArgs:
 
 
 def notices_decorator_assert_message_in_stdout(
-    captured, messages: Sequence[str], dummy_mesg: Optional[str] = None, not_in: bool = False
+    captured,
+    messages: Sequence[str],
+    dummy_mesg: Optional[str] = None,
+    not_in: bool = False,
 ):
     """
     Tests a run of notices decorator where we expect to see the messages

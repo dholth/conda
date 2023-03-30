@@ -22,7 +22,7 @@ from .exceptions import LockError
 
 deprecated.module("23.3", "23.9", addendum="Use `filelock` instead.")
 
-LOCK_EXTENSION = 'conda_lock'
+LOCK_EXTENSION = "conda_lock"
 
 # Keep the string "LOCKERROR" in this string so that external
 # programs can look for it.
@@ -34,21 +34,23 @@ You can also use: $ conda clean --lock
 """
 
 log = logging.getLogger(__name__)
-stdoutlog = logging.getLogger('conda.stdoutlog')
+stdoutlog = logging.getLogger("conda.stdoutlog")
+
 
 def touch(file_name, times=None):
-    """ Touch function like touch in Unix shell
+    """Touch function like touch in Unix shell
     :param file_name: the name of file
     :param times: the access and modified time
     Examples:
         touch("hello_world.py")
     """
     try:
-        with open(file_name, 'a'):
+        with open(file_name, "a"):
             os.utime(file_name, times)
     except OSError as e:  # pragma: no cover
         log.warn(
-            "Failed to create lock, do not run conda in parallel processes [errno %d]", e.errno
+            "Failed to create lock, do not run conda in parallel processes [errno %d]",
+            e.errno,
         )
 
 
@@ -58,9 +60,9 @@ class FileLock:
     :param path_to_lock: the path to be locked
     :param retries: max number of retries
     """
+
     def __init__(self, path_to_lock, retries=10):
-        """
-        """
+        """ """
         self.path_to_lock = abspath(path_to_lock)
         self.retries = retries
         self.lock_file_path = f"{self.path_to_lock}.pid{{0}}.{LOCK_EXTENSION}"
@@ -94,6 +96,7 @@ class FileLock:
 
     def __exit__(self, exc_type, exc_value, traceback):
         from .gateways.disk.delete import rm_rf
+
         rm_rf(self.lock_file_path)
 
 
@@ -116,13 +119,19 @@ class DirectoryLock(FileLock):  # lgtm [py/missing-call-to-init]
         # e.g. if locking directory `/conda`, lock file will be `/conda/conda.pidXXXX.conda_lock`
         self.lock_file_glob_str = f"{lock_path_pre}.pid*.{LOCK_EXTENSION}"
         # make sure '/' exists
-        assert isdir(dirname(self.directory_path)), f"{self.directory_path} doesn't exist"
+        assert isdir(
+            dirname(self.directory_path)
+        ), f"{self.directory_path} doesn't exist"
         if not isdir(self.directory_path):
             try:
                 os.makedirs(self.directory_path)
                 log.debug("forced to create %s", self.directory_path)
             except OSError as e:  # pragma: no cover
-                log.warn("Failed to create directory %s [errno %d]", self.directory_path, e.errno)
+                log.warn(
+                    "Failed to create directory %s [errno %d]",
+                    self.directory_path,
+                    e.errno,
+                )
 
 
 Locked = DirectoryLock

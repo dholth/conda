@@ -26,8 +26,9 @@ class NoarchField(EnumField):
 
 class Noarch(Entity):
     type = NoarchField(NoarchType)
-    entry_points = ListField(str, required=False, nullable=True, default=None,
-                             default_in_dump=False)
+    entry_points = ListField(
+        str, required=False, nullable=True, default=None, default_in_dump=False
+    )
 
 
 class PreferredEnv(Entity):
@@ -40,8 +41,9 @@ class PackageMetadata(Entity):
     # from info/package_metadata.json
     package_metadata_version = IntegerField()
     noarch = ComposableField(Noarch, required=False, nullable=True)
-    preferred_env = ComposableField(PreferredEnv, required=False, nullable=True, default=None,
-                                    default_in_dump=False)
+    preferred_env = ComposableField(
+        PreferredEnv, required=False, nullable=True, default=None, default_in_dump=False
+    )
 
 
 class PackageInfo(ImmutableEntity):

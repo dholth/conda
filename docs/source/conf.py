@@ -238,6 +238,6 @@ add_module_names = False
 
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'pluggy': ('https://pluggy.readthedocs.io/en/stable/', None),
+    "python": ("https://docs.python.org/3", None),
+    "pluggy": ("https://pluggy.readthedocs.io/en/stable/", None),
 }

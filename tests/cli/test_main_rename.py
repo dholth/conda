@@ -70,14 +70,20 @@ def list_envs():
 
 
 def test_rename_by_name_success(env_one):
-    run(f"conda rename -n {TEST_ENV_NAME_1} {TEST_ENV_NAME_RENAME}", disallow_stderr=False)
+    run(
+        f"conda rename -n {TEST_ENV_NAME_1} {TEST_ENV_NAME_RENAME}",
+        disallow_stderr=False,
+    )
 
     assert locate_prefix_by_name(TEST_ENV_NAME_RENAME)
     with pytest.raises(EnvironmentNameNotFound):
         locate_prefix_by_name(TEST_ENV_NAME_1)
 
     # Clean up
-    run(f"conda rename -n {TEST_ENV_NAME_RENAME} {TEST_ENV_NAME_1}", disallow_stderr=False)
+    run(
+        f"conda rename -n {TEST_ENV_NAME_RENAME} {TEST_ENV_NAME_1}",
+        disallow_stderr=False,
+    )
 
 
 def test_rename_by_path_success(env_one):
@@ -104,7 +110,10 @@ def test_rename_by_name_name_already_exists_error(env_one):
     out, err, exit_code = run(
         f"conda rename -n {TEST_ENV_NAME_1} {TEST_ENV_NAME_1}", disallow_stderr=False
     )
-    assert f"The environment '{TEST_ENV_NAME_1}' already exists. Override with --force" in err
+    assert (
+        f"The environment '{TEST_ENV_NAME_1}' already exists. Override with --force"
+        in err
+    )
 
 
 def test_rename_by_path_path_already_exists_error(env_one):
@@ -130,7 +139,8 @@ def test_cannot_rename_base_env_by_name(env_one):
 def test_cannot_rename_base_env_by_path(env_one):
     """Test to ensure that we cannot rename the base env invoked by path"""
     out, err, exit_code = run(
-        f"conda rename -p {context.root_prefix} {TEST_ENV_NAME_RENAME}", disallow_stderr=False
+        f"conda rename -p {context.root_prefix} {TEST_ENV_NAME_RENAME}",
+        disallow_stderr=False,
     )
     assert "The 'base' environment cannot be renamed" in err
 
@@ -150,7 +160,8 @@ def test_cannot_rename_active_env_by_name(env_one):
 
     with set_active_prefix(prefix):
         out, err, exit_code = run(
-            f"conda rename -n {TEST_ENV_NAME_1} {TEST_ENV_NAME_RENAME}", disallow_stderr=False
+            f"conda rename -n {TEST_ENV_NAME_1} {TEST_ENV_NAME_RENAME}",
+            disallow_stderr=False,
         )
         assert "Cannot rename the active environment" in err
 
@@ -161,7 +172,10 @@ def test_rename_with_force(env_one, env_two):
     Without this flag, it would return with an error message.
     """
     # Do a force rename
-    run(f"conda rename -n {TEST_ENV_NAME_1} {TEST_ENV_NAME_2} --force", disallow_stderr=False)
+    run(
+        f"conda rename -n {TEST_ENV_NAME_1} {TEST_ENV_NAME_2} --force",
+        disallow_stderr=False,
+    )
 
     (_, _, exit_code), _ = list_envs()
 
@@ -185,7 +199,8 @@ def test_rename_with_force_with_errors(env_one, env_two):
     with mock.patch("conda.cli.main_rename.install.clone") as clone_mock:
         clone_mock.side_effect = [CondaError(error_message)]
         _, err, exit_code = run(
-            f"conda rename -n {TEST_ENV_NAME_1} {TEST_ENV_NAME_2} --force", disallow_stderr=False
+            f"conda rename -n {TEST_ENV_NAME_1} {TEST_ENV_NAME_2} --force",
+            disallow_stderr=False,
         )
         assert error_message in err
         assert exit_code == 1
@@ -195,6 +210,7 @@ def test_rename_with_force_with_errors(env_one, env_two):
     assert locate_prefix_by_name(TEST_ENV_NAME_1)
     (_, _, exit_code), _ = list_envs()
     assert exit_code is None
+
 
 def test_rename_with_force_with_errors_prefix(env_prefix_one):
     """

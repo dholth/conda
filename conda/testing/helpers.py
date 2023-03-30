@@ -79,7 +79,9 @@ def captured(disallow_stderr=True):
             raise Exception("Got stderr output: %s" % c.stderr)
 
 
-def capture_json_with_argv(command, disallow_stderr=True, ignore_stderr=False, **kwargs):
+def capture_json_with_argv(
+    command, disallow_stderr=True, ignore_stderr=False, **kwargs
+):
     stdout, stderr, exit_code = run_inprocess_conda_command(command, disallow_stderr)
     if kwargs.get("relaxed"):
         match = re.match(r"\A.*?({.*})", stdout, re.DOTALL)
@@ -136,7 +138,9 @@ def run_inprocess_conda_command(command, disallow_stderr: bool = True):
         main_func = cli.main
 
     # May want to do this to command:
-    with argv(encode_arguments(shlex_split_unicode(command))), captured(disallow_stderr) as c:
+    with argv(encode_arguments(shlex_split_unicode(command))), captured(
+        disallow_stderr
+    ) as c:
         initialize_logging()
         try:
             exit_code = main_func()
@@ -321,7 +325,9 @@ def get_index_r_1(subdir=context.subdir):
     channel = Channel("https://conda.anaconda.org/channel-1/%s" % subdir)
     sd = SubdirData(channel)
     with env_var(
-        "CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY", "false", stack_callback=conda_tests_ctxt_mgmt_def_pol
+        "CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY",
+        "false",
+        stack_callback=conda_tests_ctxt_mgmt_def_pol,
     ):
         sd._process_raw_repodata_str(json.dumps(repodata))
     sd._loaded = True
@@ -351,7 +357,9 @@ def get_index_r_2(subdir=context.subdir):
     channel = Channel("https://conda.anaconda.org/channel-2/%s" % subdir)
     sd = SubdirData(channel)
     with env_var(
-        "CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY", "false", stack_callback=conda_tests_ctxt_mgmt_def_pol
+        "CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY",
+        "false",
+        stack_callback=conda_tests_ctxt_mgmt_def_pol,
     ):
         sd._process_raw_repodata_str(json.dumps(repodata))
     sd._loaded = True
@@ -380,7 +388,9 @@ def get_index_r_4(subdir=context.subdir):
     channel = Channel("https://conda.anaconda.org/channel-4/%s" % subdir)
     sd = SubdirData(channel)
     with env_var(
-        "CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY", "false", stack_callback=conda_tests_ctxt_mgmt_def_pol
+        "CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY",
+        "false",
+        stack_callback=conda_tests_ctxt_mgmt_def_pol,
     ):
         sd._process_raw_repodata_str(json.dumps(repodata))
     sd._loaded = True
@@ -409,7 +419,9 @@ def get_index_r_5(subdir=context.subdir):
     channel = Channel("https://conda.anaconda.org/channel-5/%s" % subdir)
     sd = SubdirData(channel)
     with env_var(
-        "CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY", "true", stack_callback=conda_tests_ctxt_mgmt_def_pol
+        "CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY",
+        "true",
+        stack_callback=conda_tests_ctxt_mgmt_def_pol,
     ):
         sd._process_raw_repodata_str(json.dumps(repodata))
     sd._loaded = True
@@ -507,7 +519,9 @@ def get_index_must_unfreeze(subdir=context.subdir):
     channel = Channel("https://conda.anaconda.org/channel-freeze/%s" % subdir)
     sd = SubdirData(channel)
     with env_var(
-        "CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY", "false", stack_callback=conda_tests_ctxt_mgmt_def_pol
+        "CONDA_ADD_PIP_AS_PYTHON_DEPENDENCY",
+        "false",
+        stack_callback=conda_tests_ctxt_mgmt_def_pol,
     ):
         sd._process_raw_repodata_str(json.dumps(repodata))
     sd._loaded = True
@@ -572,7 +586,9 @@ def record(
 
 
 @contextmanager
-def get_solver(tmpdir, specs_to_add=(), specs_to_remove=(), prefix_records=(), history_specs=()):
+def get_solver(
+    tmpdir, specs_to_add=(), specs_to_remove=(), prefix_records=(), history_specs=()
+):
     tmpdir = tmpdir.strpath
     pd = PrefixData(tmpdir)
     pd._PrefixData__prefix_records = {
@@ -601,7 +617,9 @@ def get_solver(tmpdir, specs_to_add=(), specs_to_remove=(), prefix_records=(), h
 
 
 @contextmanager
-def get_solver_2(tmpdir, specs_to_add=(), specs_to_remove=(), prefix_records=(), history_specs=()):
+def get_solver_2(
+    tmpdir, specs_to_add=(), specs_to_remove=(), prefix_records=(), history_specs=()
+):
     tmpdir = tmpdir.strpath
     pd = PrefixData(tmpdir)
     pd._PrefixData__prefix_records = {
@@ -630,7 +648,9 @@ def get_solver_2(tmpdir, specs_to_add=(), specs_to_remove=(), prefix_records=(),
 
 
 @contextmanager
-def get_solver_4(tmpdir, specs_to_add=(), specs_to_remove=(), prefix_records=(), history_specs=()):
+def get_solver_4(
+    tmpdir, specs_to_add=(), specs_to_remove=(), prefix_records=(), history_specs=()
+):
     tmpdir = tmpdir.strpath
     pd = PrefixData(tmpdir)
     pd._PrefixData__prefix_records = {
@@ -659,7 +679,9 @@ def get_solver_4(tmpdir, specs_to_add=(), specs_to_remove=(), prefix_records=(),
 
 
 @contextmanager
-def get_solver_5(tmpdir, specs_to_add=(), specs_to_remove=(), prefix_records=(), history_specs=()):
+def get_solver_5(
+    tmpdir, specs_to_add=(), specs_to_remove=(), prefix_records=(), history_specs=()
+):
     tmpdir = tmpdir.strpath
     pd = PrefixData(tmpdir)
     pd._PrefixData__prefix_records = {

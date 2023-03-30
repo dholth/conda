@@ -11,6 +11,7 @@ primitive_types = (str, int, float, complex, bool, NoneType)
 def isiterable(obj):
     # and not a string
     from collections.abc import Iterable
+
     return not isinstance(obj, str) and isinstance(obj, Iterable)
 
 
@@ -28,7 +29,13 @@ def utf8_writer(fp):
 
 
 def Utf8NamedTemporaryFile(
-    mode="w+b", buffering=-1, newline=None, suffix=None, prefix=None, dir=None, delete=True
+    mode="w+b",
+    buffering=-1,
+    newline=None,
+    suffix=None,
+    prefix=None,
+    dir=None,
+    delete=True,
 ):
     if "CONDA_TEST_SAVE_TEMPS" in os.environ:
         delete = False

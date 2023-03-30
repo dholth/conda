@@ -23,7 +23,9 @@ def prefix(tmpdir):
 def test_pre_link_message(mocker, prefix, pre_link_messages_package):
     prefix, _ = prefix
     mocker.patch("conda.cli.common.confirm_yn", return_value=True)
-    stdout, _, _ = run_command(Commands.INSTALL, prefix, pre_link_messages_package, "--use-local")
+    stdout, _, _ = run_command(
+        Commands.INSTALL, prefix, pre_link_messages_package, "--use-local"
+    )
     assert "Lorem ipsum dolor sit amet" in stdout
 
 
@@ -33,7 +35,10 @@ def test_find_conflicts_called_once(mocker, prefix):
     bad_deps = {
         "python": {
             (
-                (MatchSpec("statistics"), MatchSpec("python[version='>=2.7,<2.8.0a0']")),
+                (
+                    MatchSpec("statistics"),
+                    MatchSpec("python[version='>=2.7,<2.8.0a0']"),
+                ),
                 "python=3",
             )
         }

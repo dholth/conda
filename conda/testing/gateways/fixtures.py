@@ -106,7 +106,9 @@ def minio_s3_server(xprocess, tmp_path):
             try:
                 s.connect((address, port))
             except Exception as e:
-                print("something's wrong with %s:%d. Exception is %s" % (address, port, e))
+                print(
+                    "something's wrong with %s:%d. Exception is %s" % (address, port, e)
+                )
                 error = True
             finally:
                 s.close()

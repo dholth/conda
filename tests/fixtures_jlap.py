@@ -101,7 +101,9 @@ def prepare_socket() -> socket.socket:
 def _package_server(cleanup=True, base: Path | None = None):
     socket = prepare_socket()
     context = multiprocessing.get_context("spawn")
-    process = context.Process(target=make_server_with_socket, args=(socket, base), daemon=True)
+    process = context.Process(
+        target=make_server_with_socket, args=(socket, base), daemon=True
+    )
     process.start()
     yield socket
     process.kill()

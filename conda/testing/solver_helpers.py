@@ -11,7 +11,11 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from ..exceptions import PackagesNotFoundError, ResolvePackageNotFound, UnsatisfiableError
+from ..exceptions import (
+    PackagesNotFoundError,
+    ResolvePackageNotFound,
+    UnsatisfiableError,
+)
 from ..base.context import context
 from ..core.solve import Solver
 from ..models.channel import Channel
@@ -111,7 +115,11 @@ class SimpleEnvironment:
 
     def _package_data(self, record):
         """Turn record into data, to be written in the JSON environment/repo files."""
-        data = {key: value for key, value in vars(record).items() if key in self.REPO_DATA_KEYS}
+        data = {
+            key: value
+            for key, value in vars(record).items()
+            if key in self.REPO_DATA_KEYS
+        }
         if "subdir" not in data:
             data["subdir"] = context.subdir
         return data
@@ -123,7 +131,9 @@ class SimpleEnvironment:
         conda_meta.mkdir(exist_ok=True, parents=True)
         # write record files
         for record in self.installed_packages:
-            record_path = conda_meta / f"{record.name}-{record.version}-{record.build}.json"
+            record_path = (
+                conda_meta / f"{record.name}-{record.version}-{record.build}.json"
+            )
             record_data = self._package_data(record)
             record_data["channel"] = record.channel.name
             record_path.write_text(json.dumps(record_data))
@@ -218,7 +228,9 @@ class SolverTests:
         assert issubclass(exc_info.type, UnsatisfiableError)
         if exc_info.type is UnsatisfiableError:
             assert (
-                sorted(tuple(map(str, entries)) for entries in exc_info.value.unsatisfiable)
+                sorted(
+                    tuple(map(str, entries)) for entries in exc_info.value.unsatisfiable
+                )
                 == entries
             )
 
@@ -265,7 +277,9 @@ class SolverTests:
 
     def test_mkl(self, env):
         env.repo_packages = index_packages(1)
-        assert env.install("mkl") == env.install("mkl 11*", MatchSpec(track_features="mkl"))
+        assert env.install("mkl") == env.install(
+            "mkl 11*", MatchSpec(track_features="mkl")
+        )
 
     def test_accelerate(self, env):
         env.repo_packages = index_packages(1)
@@ -469,8 +483,12 @@ class SolverTests:
             helpers.record(name="a", depends=["py =3.7.1"]),
             helpers.record(name="py_req_1"),
             helpers.record(name="py_req_2"),
-            helpers.record(name="py", version="3.7.1", depends=["py_req_1", "py_req_2"]),
-            helpers.record(name="py", version="3.6.1", depends=["py_req_1", "py_req_2"]),
+            helpers.record(
+                name="py", version="3.7.1", depends=["py_req_1", "py_req_2"]
+            ),
+            helpers.record(
+                name="py", version="3.6.1", depends=["py_req_1", "py_req_2"]
+            ),
         ]
         with pytest.raises(UnsatisfiableError) as exc_info:
             env.install("a", "py=3.6.1")
@@ -609,8 +627,14 @@ class SolverTests:
         # this is testing that previously installed reqs are not disrupted
         # by newer timestamps. regression test of sorts for
         #  https://github.com/conda/conda/issues/6271
-        assert env.install("mypackage", *env.install("libpng 1.2.*", as_specs=True)) == records_12
-        assert env.install("mypackage", *env.install("libpng 1.5.*", as_specs=True)) == records_15
+        assert (
+            env.install("mypackage", *env.install("libpng 1.2.*", as_specs=True))
+            == records_12
+        )
+        assert (
+            env.install("mypackage", *env.install("libpng 1.5.*", as_specs=True))
+            == records_15
+        )
         # unspecified python version should maximize libpng (v1.5),
         # even though it has a lower timestamp
         assert env.install("mypackage") == records_15
@@ -778,7 +802,9 @@ class SolverTests:
         # will be selected for install instead of a later
         # build of scipy 0.11.0.
         good_rec_match = MatchSpec("channel-1::scipy==0.11.0=np17py33_3")
-        good_rec = next(prec for prec in index_packages(1) if good_rec_match.match(prec))
+        good_rec = next(
+            prec for prec in index_packages(1) if good_rec_match.match(prec)
+        )
         bad_deps = tuple(d for d in good_rec.depends if not d.startswith("numpy"))
         bad_rec = PackageRecord.from_objects(
             good_rec,

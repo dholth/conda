@@ -54,7 +54,13 @@ def execute(args, _):
 
     def clone_and_remove():
         actions: tuple[partial, ...] = (
-            partial(install.clone, source, destination, quiet=context.quiet, json=context.json),
+            partial(
+                install.clone,
+                source,
+                destination,
+                quiet=context.quiet,
+                json=context.json,
+            ),
             partial(rm_rf, source),
         )
 

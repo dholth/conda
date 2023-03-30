@@ -42,7 +42,9 @@ def cached_response(func):
     return wrapper
 
 
-def is_notice_response_cache_expired(channel_notice_response: ChannelNoticeResponse) -> bool:
+def is_notice_response_cache_expired(
+    channel_notice_response: ChannelNoticeResponse,
+) -> bool:
     """
     This checks the contents of the cache response to see if it is expired.
 
@@ -60,7 +62,8 @@ def is_notice_response_cache_expired(channel_notice_response: ChannelNoticeRespo
         return expired_at < now
 
     return any(
-        is_channel_notice_expired(chn.expired_at) for chn in channel_notice_response.notices
+        is_channel_notice_expired(chn.expired_at)
+        for chn in channel_notice_response.notices
     )
 
 
@@ -107,7 +110,9 @@ def write_notice_response_to_cache(
     """
     Writes our notice data to our local cache location
     """
-    cache_key = ChannelNoticeResponse.get_cache_key(channel_notice_response.url, cache_dir)
+    cache_key = ChannelNoticeResponse.get_cache_key(
+        channel_notice_response.url, cache_dir
+    )
 
     with open(cache_key, "w") as fp:
         json.dump(channel_notice_response.json_data, fp)

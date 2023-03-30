@@ -26,7 +26,7 @@ def _write_file(path, content):
 
 def test_remove_file():
     with tempdir() as td:
-        test_path = join(td, 'test_path')
+        test_path = join(td, "test_path")
         touch(test_path)
         assert isfile(test_path)
         _try_open(test_path)
@@ -38,7 +38,7 @@ def test_remove_file():
 
 def test_remove_file_to_trash():
     with tempdir() as td:
-        test_path = join(td, 'test_path')
+        test_path = join(td, "test_path")
         touch(test_path)
         assert isfile(test_path)
         _try_open(test_path)
@@ -50,7 +50,7 @@ def test_remove_file_to_trash():
 
 def test_remove_dir():
     with tempdir() as td:
-        test_path = join(td, 'test_path')
+        test_path = join(td, "test_path")
         touch(test_path)
         _try_open(test_path)
         assert isfile(test_path)
@@ -112,14 +112,14 @@ def test_remove_link_to_dir():
 def test_rm_rf_does_not_follow_symlinks():
     with TemporaryDirectory() as tmp:
         # make a file in some temp folder
-        real_file = os.path.join(tmp, 'testfile')
-        with open(real_file, 'w') as f:
-            f.write('weee')
+        real_file = os.path.join(tmp, "testfile")
+        with open(real_file, "w") as f:
+            f.write("weee")
         # make a subfolder
-        subdir = os.path.join(tmp, 'subfolder')
+        subdir = os.path.join(tmp, "subfolder")
         os.makedirs(subdir)
         # link to the file in the subfolder
-        link_path = join(subdir, 'file_link')
+        link_path = join(subdir, "file_link")
         if not softlink_supported(real_file, tmp) and on_win:
             pytest.skip("softlink not supported")
 
@@ -133,7 +133,7 @@ def test_rm_rf_does_not_follow_symlinks():
 
 def test_move_to_trash():
     with tempdir() as td:
-        test_path = join(td, 'test_path')
+        test_path = join(td, "test_path")
         touch(test_path)
         _try_open(test_path)
         assert isdir(td)
@@ -144,8 +144,9 @@ def test_move_to_trash():
 
 def test_move_path_to_trash_couldnt():
     from conda.gateways.disk.delete import move_path_to_trash
+
     with tempdir() as td:
-        test_path = join(td, 'test_path')
+        test_path = join(td, "test_path")
         touch(test_path)
         _try_open(test_path)
         assert isdir(td)
@@ -155,8 +156,9 @@ def test_move_path_to_trash_couldnt():
 
 def test_backoff_unlink():
     from conda.gateways.disk.delete import backoff_rmdir
+
     with tempdir() as td:
-        test_path = join(td, 'test_path')
+        test_path = join(td, "test_path")
         touch(test_path)
         _try_open(test_path)
         assert isdir(td)
@@ -166,17 +168,19 @@ def test_backoff_unlink():
 
 def test_backoff_unlink_doesnt_exist():
     from conda.gateways.disk.delete import backoff_rmdir
+
     with tempdir() as td:
-        test_path = join(td, 'test_path')
+        test_path = join(td, "test_path")
         touch(test_path)
         try:
-            backoff_rmdir(join(test_path, 'some', 'path', 'in', 'utopia'))
+            backoff_rmdir(join(test_path, "some", "path", "in", "utopia"))
         except Exception as e:
             assert e.value.errno == ENOENT
 
 
 def test_try_rmdir_all_empty_doesnt_exist():
     from conda.gateways.disk.delete import try_rmdir_all_empty
+
     with tempdir() as td:
         assert isdir(td)
         try_rmdir_all_empty(td)
