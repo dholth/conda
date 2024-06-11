@@ -176,24 +176,28 @@ def download_partial_file(
         target.seek(0)
         if md5 or sha256:
             checksum_type = "sha256" if sha256 else "md5"
-            checksum = (sha256 if sha256 else md5).lower()
+            checksum = bytes.fromhex(sha256 if sha256 else md5)
             hasher = hashlib.new(checksum_type)
             target.seek(0)
             while read := target.read(CHUNK_SIZE):
                 hasher.update(read)
 
-            actual_checksum = hasher.hexdigest()
+            actual_checksum = hasher.digest()
 
             if actual_checksum != checksum:
                 log.debug(
                     "%s mismatch for download: %s (%s != %s)",
                     checksum_type,
                     url,
-                    actual_checksum,
-                    checksum,
+                    actual_checksum.hex(),
+                    checksum.hex(),
                 )
                 raise ChecksumMismatchError(
-                    url, target_full_path, checksum_type, checksum, actual_checksum
+                    url,
+                    target_full_path,
+                    checksum_type,
+                    checksum.hex(),
+                    actual_checksum.hex(),
                 )
         if size is not None:
             actual_size = os.fstat(target.fileno()).st_size
