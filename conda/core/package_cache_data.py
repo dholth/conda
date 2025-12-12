@@ -977,7 +977,7 @@ def do_cache_action(prec, cache_action, progress_bar, download_total=1.0, *, can
     return prec
 
 
-def do_extract_action(prec, extract_action, progress_bar):
+def do_extract_action(prec, extract_action: ExtractPackageAction, progress_bar):
     """This function gets called after do_cache_action completes."""
     # pass None if already extracted (simplifies code)
     if not extract_action:

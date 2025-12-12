@@ -8,14 +8,21 @@ Display information about current conda installation.
 from __future__ import annotations
 
 import os
+import pprint
 import re
 import sys
+import time
 from argparse import SUPPRESS, _StoreTrueAction
+from concurrent.futures.interpreter import InterpreterPoolExecutor
+from contextlib import contextmanager
 from functools import cached_property
 from logging import getLogger
 from os.path import exists, expanduser, isfile, join
 from textwrap import wrap
 from typing import TYPE_CHECKING, Literal
+
+import _conda.sys_modules
+import conda.sys_modules
 
 from ..deprecations import deprecated
 
@@ -29,6 +36,33 @@ if TYPE_CHECKING:
 
 log = getLogger(__name__)
 
+@contextmanager
+def timer(message):
+    begin = time.perf_counter_ns()
+    yield
+    end = time.perf_counter_ns()
+    print(f"{message}{(end-begin)/1e9:0.04f}s")
+
+def test_subinterpreter():
+    for i in range(10):
+        with InterpreterPoolExecutor() as executor:
+            for j in range(4):
+                with timer(f"_conda {j} "):
+                    fut = executor.submit(_conda.sys_modules.sys_modules)
+                    result = fut.result()
+                print("Modules in subinterpreter _conda.sys_modules:", len(result), "conda" in fut.result())
+
+        with InterpreterPoolExecutor() as executor:
+            for j in range(4):
+                with timer(f"conda {j} "):
+                    fut = executor.submit(conda.sys_modules.sys_modules)
+                    result = fut.result()
+                print("Modules in subinterpreter conda.sys_modules:", len(result), "conda" in result)
+
+        print()
+
+    print("Conda modules in subinterpreter")
+    pprint.pprint(result)
 
 def configure_parser(sub_parsers: _SubParsersAction, **kwargs) -> ArgumentParser:
     from ..common.constants import NULL
@@ -604,5 +638,7 @@ def execute(args: Namespace, parser: ArgumentParser) -> int:
     components = iter_info_components(args, context)
     renderer = InfoRenderer(context)
     renderer.render(components)
+
+    test_subinterpreter()
 
     return 0
