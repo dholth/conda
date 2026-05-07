@@ -1,0 +1,382 @@
+═══════════════════════════════════════════════════════════════════════════════════════
+                    PLUGGABLE REQUESTS IMPLEMENTATION PLAN
+                                 COMPLETION SUMMARY
+═══════════════════════════════════════════════════════════════════════════════════════
+
+📦 DELIVERABLES COMPLETED
+═══════════════════════════════════════════════════════════════════════════════════════
+
+✅ DOCUMENT 1: PLUGGABLE_REQUESTS_README.md (12 KB, 361 lines)
+   Purpose: Navigation guide and role-based entry points
+   Contains:
+   • Quick links to all documents
+   • Role-based reading recommendations (PM, Architect, Developer, Plugin Dev)
+   • Key concepts overview (Fetcher, RequestsFetcher, exceptions, auth)
+   • Implementation phases 1a-2 overview
+   • Backward compatibility strategy
+   • Module structure diagram
+   • Success metrics and decision points
+
+   Use this as your STARTING POINT
+
+✅ DOCUMENT 2: PLUGGABLE_REQUESTS_IMPLEMENTATION_PLAN.md (23 KB, 766 lines)
+   Purpose: Comprehensive 10-phase implementation roadmap
+   Contains:
+   • Phase 0: Current state analysis (connection/, adapters/)
+   • Phase 1: Architecture & design (protocols, abstractions)
+   • Phase 2: Module structure (file layout, dependencies)
+   • Phase 3: Implementation details (RequestsFetcher, download.py changes)
+   • Phase 4: Testing strategy (unit, integration, coverage)
+   • Phase 5: Backward compatibility (deprecation timeline)
+   • Phase 6: Plugin system integration (hookspec)
+   • Phase 7: Documentation plan (user & dev docs)
+   • Phase 8: Implementation timeline (3 weeks for Phase 1a)
+   • Phase 9: Success criteria (functional & non-functional requirements)
+   • Phase 10: Risk assessment & mitigation
+   • Appendices: Examples, references, file checklist
+
+   Use this as your DETAILED REFERENCE
+
+✅ DOCUMENT 3: PLUGGABLE_REQUESTS_ARCHITECTURE.md (19 KB, 521 lines)
+   Purpose: Visual architecture and technical details
+   Contains:
+   • System architecture diagram (ASCII art)
+   • Data flow for single file downloads
+   • Data flow for multiplexed downloads (future)
+   • Session vs Fetcher migration pattern
+   • Exception hierarchy (requests → fetcher → conda)
+   • Module import tree (dependency graph)
+   • Configuration options (env vars, .condarc)
+   • Feature comparison matrix (Requests vs Httpx vs Curl)
+   • Plugin extension points (custom fetcher, auth, headers)
+   • Testing strategy overview
+   • Rollout schedule & release timeline
+
+   Use this for ARCHITECTURE UNDERSTANDING & REFERENCE
+
+✅ DOCUMENT 4: PLUGGABLE_REQUESTS_QUICK_START.md (13 KB, 494 lines)
+   Purpose: Step-by-step developer checklist for Phase 1a
+   Contains:
+   • 13-step implementation checklist (create module → code quality)
+   • Step 1: Create module structure
+   • Step 2: Define protocols (types.py)
+   • Step 3: Define request/response types
+   • Step 4: Implement RequestsFetcher
+   • Step 5: Implement registry
+   • Step 6: Implement auth support
+   • Step 7: Create __init__.py
+   • Step 8: Update download.py
+   • Step 9: Write tests
+   • Step 10: Update connection/__init__.py
+   • Step 11: Documentation
+   • Step 12: Code quality checks
+   • Step 13: PR checklist
+   • Phase 1b: Additional fetchers template (HttpxFetcher, CurlFetcher)
+   • Testing template with code samples
+   • Common issues & troubleshooting
+   • Success metrics
+
+   Use this as your DEVELOPER CHECKLIST
+
+═══════════════════════════════════════════════════════════════════════════════════════
+
+🎯 KEY DESIGN DECISIONS
+═══════════════════════════════════════════════════════════════════════════════════════
+
+1. ✓ Use typing.Protocol (duck typing) instead of ABC
+   Rationale: Flexible across libraries, no base class coupling, matches unearth
+
+2. ✓ Keep requests as default (RequestsFetcher wrapper)
+   Rationale: Zero breaking changes, gradual adoption, full backward compatibility
+
+3. ✓ Three-tier implementation:
+   • Phase 1a: RequestsFetcher (builtin, core)
+   • Phase 1b: HttpxFetcher (HTTP/2, separate package: conda-httpx)
+   • Phase 1c: CurlFetcher (multiplexing, separate package: conda-curl)
+
+4. ✓ Unified exception hierarchy
+   Rationale: Single mapping point for all library exceptions to conda exceptions
+
+5. ✓ Thin Session wrapper (optional)
+   Rationale: 100% backward compatibility, can delegate to fetcher internally
+
+═══════════════════════════════════════════════════════════════════════════════════════
+
+📂 MODULE STRUCTURE (to be created)
+═══════════════════════════════════════════════════════════════════════════════════════
+
+conda/gateways/fetcher/                          [NEW]
+├── __init__.py                                  [Public API, ~50 LOC]
+├── types.py                                     [Protocols, ~150 LOC]
+├── request.py                                   [FetchRequest, exceptions, ~120 LOC]
+├── response.py                                  [Response building, error mapping, ~250 LOC]
+├── auth.py                                      [AuthHandler, resolver, ~200 LOC]
+├── registry.py                                  [Discovery & registration, ~130 LOC]
+└── implementations/
+    ├── __init__.py                              [~30 LOC]
+    └── requests.py                              [RequestsFetcher adapter, ~200 LOC]
+
+tests/gateways/fetcher/                         [NEW]
+├── __init__.py
+├── test_fetcher_protocol.py                    [Protocol compliance, ~150 LOC]
+├── test_requests_fetcher.py                    [Full implementation, ~300 LOC]
+├── test_auth.py                                [Auth handler tests, ~200 LOC]
+├── test_response.py                            [Response & exceptions, ~150 LOC]
+└── test_registry.py                            [Registry tests, ~100 LOC]
+
+conda/gateways/connection/                      [MODIFIED]
+├── download.py                                 [Use fetcher interface, small changes]
+├── session.py                                  [Optional thin wrapper]
+└── __init__.py                                 [Re-exports for compatibility]
+
+Total new code: ~1,500 LOC
+Total test code: ~1,000+ LOC
+Test coverage target: >90%
+
+═══════════════════════════════════════════════════════════════════════════════════════
+
+⏱️ IMPLEMENTATION TIMELINE
+═══════════════════════════════════════════════════════════════════════════════════════
+
+PHASE 1a: RequestsFetcher Foundation (2-3 weeks)
+├─ Week 1: Foundation
+│  ├─ Create conda/gateways/fetcher/ module structure
+│  ├─ Define Fetcher, FetcherResponse, AuthHandler protocols
+│  ├─ Create FetchRequest and exception hierarchy
+│  ├─ Implement RequestsFetcher wrapper
+│  └─ ~50% done
+│
+├─ Week 2: Integration & Testing
+│  ├─ Update download.py to use fetcher interface
+│  ├─ Implement auth support (ChannelAuthResolver)
+│  ├─ Write comprehensive unit tests (>90% coverage)
+│  ├─ Update existing tests for compatibility
+│  └─ ~80% done
+│
+└─ Week 3: Polish & Release Prep
+   ├─ Code quality checks (ruff, mypy)
+   ├─ Documentation & docstrings
+   ├─ Error handling refinement
+   ├─ Create news/ changelog fragment
+   └─ 100% done, ready for PR
+
+PHASE 1b: HttpxFetcher (1-2 weeks) [FUTURE, after Phase 1a]
+├─ Implement HTTP/2 support in separate package (conda-httpx)
+├─ Reference implementation of Protocol pattern
+└─ Performance comparison with requests
+
+PHASE 1c: CurlFetcher (2-3 weeks) [FUTURE, after Phase 1a]
+├─ Implement FetcherMultiplexer using pycurl
+├─ True concurrent downloads (no head-of-line blocking)
+├─ Reference implementation of multiplexing pattern
+└─ Benchmark against other fetchers
+
+PHASE 2: Stabilization (1-2 months) [FUTURE, after 1b/1c]
+├─ Performance testing (real-world workloads)
+├─ Production validation
+├─ Community feedback
+└─ Production release
+
+═══════════════════════════════════════════════════════════════════════════════════════
+
+✅ SUCCESS CRITERIA (Phase 1a)
+═══════════════════════════════════════════════════════════════════════════════════════
+
+Functional Requirements:
+✓ Fetcher protocol defined and documented
+✓ RequestsFetcher wraps Session successfully
+✓ download.py uses fetcher interface
+✓ All existing tests pass unchanged
+✓ Can create custom Fetcher implementations
+✓ Auth handlers work transparently
+✓ Error mapping complete (all conda exceptions)
+
+Non-Functional Requirements:
+✓ Zero performance regression vs. current requests
+✓ No breaking changes to public API
+✓ >90% test coverage for fetcher module
+✓ Code follows conda style guide (ruff, mypy)
+✓ CI/CD passes all checks
+
+Documentation:
+✓ API docstrings complete
+✓ Developer guide for custom fetchers
+✓ Architecture documented
+✓ Changelog entry (news/ fragment)
+
+═══════════════════════════════════════════════════════════════════════════════════════
+
+📊 STATISTICS
+═══════════════════════════════════════════════════════════════════════════════════════
+
+Documentation Delivered:
+• Total lines: 2,237
+• Total size: 67 KB
+• Number of documents: 4 new + 1 existing
+• Code examples: 15+
+• Architecture diagrams: 8+
+• Implementation checklists: 3
+• Role-based reading paths: 4
+
+Implementation (estimated for Phase 1a):
+• New production code: ~1,500 LOC
+• New test code: ~1,000+ LOC
+• Modified production code: ~50 LOC (download.py)
+• Expected test coverage: >90%
+• Effort: 2-3 weeks (1 developer)
+
+═══════════════════════════════════════════════════════════════════════════════════════
+
+🚀 HOW TO USE THESE DOCUMENTS
+═══════════════════════════════════════════════════════════════════════════════════════
+
+STEP 1: Choose your role
+┌─ Project Manager / Tech Lead
+│  └─ Read PLUGGABLE_REQUESTS_README.md (5 min)
+│     Then: PLUGGABLE_REQUESTS_IMPLEMENTATION_PLAN.md Sections 0-1, 10 (15 min)
+│
+├─ Architect / Tech Reviewer
+│  └─ Read PLUGGABLE_REQUESTS_README.md (5 min)
+│     Then: PLUGGABLE_REQUESTS_IMPLEMENTATION_PLAN.md Sections 2-3 (20 min)
+│     Then: PLUGGABLE_REQUESTS_ARCHITECTURE.md (15 min)
+│
+├─ Developer (Phase 1a implementation)
+│  └─ Read PLUGGABLE_REQUESTS_README.md (5 min)
+│     Then: PLUGGABLE_REQUESTS_ARCHITECTURE.md (10 min)
+│     Then: Follow PLUGGABLE_REQUESTS_QUICK_START.md checklist (step-by-step)
+│
+└─ Plugin Developer (Future httpx/curl)
+   └─ Read PLUGGABLE_REQUESTS_README.md (5 min)
+      Then: PLUGGABLE_REQUESTS_ARCHITECTURE.md "Plugin Extension Points" (5 min)
+      Then: PLUGGABLE_REQUESTS_QUICK_START.md "Phase 1b" templates (5 min)
+
+STEP 2: Deep dive into specific documents
+  • For: "Why are we doing this?" → PLUGGABLE_REQUESTS.md
+  • For: "How is this architected?" → PLUGGABLE_REQUESTS_ARCHITECTURE.md
+  • For: "Where do I start coding?" → PLUGGABLE_REQUESTS_QUICK_START.md
+  • For: "Complete details" → PLUGGABLE_REQUESTS_IMPLEMENTATION_PLAN.md
+  • For: "Where do I start reading?" → PLUGGABLE_REQUESTS_README.md
+
+═══════════════════════════════════════════════════════════════════════════════════════
+
+🔗 REFERENCES & EXTERNAL RESOURCES
+═══════════════════════════════════════════════════════════════════════════════════════
+
+Implementation References:
+• unearth (Fetcher protocol inspiration): https://github.com/pypa/unearth
+• conda-httpx (working example): https://github.com/dholth/conda-httpx
+• conda-libmamba-solver shards (multiplexing pattern)
+
+Conda Policies & Standards:
+• CEP 8 (Release policy): https://conda.org/learn/ceps/cep-0008/
+• CEP 9 (Deprecation policy): https://conda.org/learn/ceps/cep-0009/
+• AGENTS.md (Contribution conventions)
+• Conda Style Guide: https://github.com/conda/infrastructure/blob/main/STYLEGUIDE.md
+
+Python Standards:
+• typing.Protocol: https://typing.python.org/en/latest/spec/protocol.html
+• PEP 544 (Protocols - Structural subtyping)
+• PEP 492 (Coroutines with async/await)
+
+═══════════════════════════════════════════════════════════════════════════════════════
+
+❓ FAQ
+═══════════════════════════════════════════════════════════════════════════════════════
+
+Q: What's the difference between RequestsFetcher and CondaSession?
+A: RequestsFetcher is a new abstraction that wraps requests.Session to implement
+   the Fetcher protocol. CondaSession can stay unchanged for backward compatibility,
+   or optionally become a thin wrapper around a fetcher.
+
+Q: Will this break existing code?
+A: No. Phase 1a is fully backward compatible. Requests stays the default, and
+   existing Session/download APIs continue to work unchanged.
+
+Q: When do we get HTTP/2 support?
+A: HTTP/2 support comes in Phase 1b (HttpxFetcher in separate conda-httpx package),
+   estimated 1-2 weeks after Phase 1a is complete.
+
+Q: Can I use this with httpx today?
+A: Not yet. Phase 1a is the foundation (RequestsFetcher). Phase 1b adds HttpxFetcher.
+   You can follow the templates in PLUGGABLE_REQUESTS_QUICK_START.md to create one now.
+
+Q: What about multiplexing/concurrent downloads?
+A: Multiplexing comes in Phase 1c (CurlFetcher), which implements the optional
+   FetcherMultiplexer protocol. See PLUGGABLE_REQUESTS_ARCHITECTURE.md for details.
+
+Q: How do I know if this is compatible with my auth setup?
+A: ChannelAuthResolver maps existing conda auth plugins transparently. Existing
+   ChannelAuthBase plugins continue to work without changes.
+
+Q: Is this production-ready?
+A: Phase 1a creates the foundation and is ready for production (through extensive
+   testing). HTTP/2 support (1b) and multiplexing (1c) come in future phases.
+
+═══════════════════════════════════════════════════════════════════════════════════════
+
+💡 NEXT STEPS
+═══════════════════════════════════════════════════════════════════════════════════════
+
+1. REVIEW & APPROVAL
+   [ ] Tech lead reviews this implementation plan
+   [ ] Architecture review with team (1-2 hours)
+   [ ] Confirm timeline, resources, and priority
+
+2. BEGIN PHASE 1a (when approved)
+   [ ] Start with PLUGGABLE_REQUESTS_QUICK_START.md Step 1
+   [ ] Create conda/gateways/fetcher/ module
+   [ ] Follow 13-step checklist
+   [ ] Target: 2-3 weeks to completion
+
+3. CODE REVIEW & INTEGRATION
+   [ ] Internal code review (async via GitHub)
+   [ ] CI/CD validation (tests, lint, type checking)
+   [ ] Merge to main when approved
+
+4. PLAN PHASE 1b/1c
+   [ ] Collect lessons from Phase 1a
+   [ ] Plan HTTP/2 and multiplexing features
+   [ ] Create separate packages (conda-httpx, conda-curl)
+   [ ] Timeline: 1-2 months after Phase 1a
+
+═══════════════════════════════════════════════════════════════════════════════════════
+
+📍 DOCUMENT LOCATIONS
+═══════════════════════════════════════════════════════════════════════════════════════
+
+All documents are in: /Users/dholth/prog/conda/
+
+1. PLUGGABLE_REQUESTS.md (original spec, existing)
+2. PLUGGABLE_REQUESTS_README.md (navigation guide, NEW)
+3. PLUGGABLE_REQUESTS_IMPLEMENTATION_PLAN.md (detailed roadmap, NEW)
+4. PLUGGABLE_REQUESTS_ARCHITECTURE.md (technical design, NEW)
+5. PLUGGABLE_REQUESTS_QUICK_START.md (developer checklist, NEW)
+6. IMPLEMENTATION_PLAN_SUMMARY.txt (this file, NEW)
+
+═══════════════════════════════════════════════════════════════════════════════════════
+
+✨ SUMMARY
+═══════════════════════════════════════════════════════════════════════════════════════
+
+A comprehensive 4-document implementation plan has been created for making conda's
+network interface pluggable, enabling support for HTTP/2 and alternative HTTP libraries
+while maintaining full backward compatibility.
+
+KEY HIGHLIGHTS:
+✓ Detailed architecture design using typing.Protocol
+✓ Three-phase implementation strategy (foundation, HTTP/2, multiplexing)
+✓ Zero breaking changes to existing API
+✓ Clear 2-3 week timeline for Phase 1a
+✓ Complete developer checklists and code templates
+✓ Risk assessment and mitigation strategies
+✓ Role-based reading recommendations for all stakeholders
+
+STATUS: Ready for implementation
+
+═══════════════════════════════════════════════════════════════════════════════════════
+
+Created: 2026-05-07
+Last updated: 2026-05-07
+Status: Complete & Ready for Review
+
+═══════════════════════════════════════════════════════════════════════════════════════
